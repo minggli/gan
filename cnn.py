@@ -72,11 +72,13 @@ class _BaseCNN(object):
             return tf.nn.relu
         elif activation == 'tanh':
             return tf.tanh
+        elif activation == 'lrelu':
+            return lambda x: tf.maximum(.2 * x, x)
 
     @property
     def x(self):
         """feature set"""
-        warnings.warn("using placeholder to feed data will causing low "
+        warnings.warn("using placeholder to feed data will cause low "
                       "efficiency between Python and C++ interface",
                       RuntimeWarning)
         return tf.placeholder(dtype=tf.float32,
@@ -87,7 +89,7 @@ class _BaseCNN(object):
     @property
     def y_(self):
         """ground truth, in one-hot format"""
-        warnings.warn("using placeholder to feed data will causing low "
+        warnings.warn("using placeholder to feed data will cause low "
                       "efficiency between Python and C++ interface",
                       RuntimeWarning)
         return tf.placeholder(dtype=tf.float32,
