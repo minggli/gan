@@ -66,6 +66,7 @@ class _BaseCNN(object):
 
     @staticmethod
     def _nonlinearity(activation='relu'):
+        assert activation in ['relu', 'sigmoid', 'tanh', 'lrelu'], "unspecified activation function."
         if activation == 'sigmoid':
             return tf.nn.sigmoid
         elif activation == 'relu':
