@@ -23,6 +23,7 @@ build
 *.egg-info
 _mailinglist
 .tox
+tensorflow/
 .cache/
 .idea/
 data/
