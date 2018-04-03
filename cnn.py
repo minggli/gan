@@ -70,7 +70,7 @@ class _BaseCNN(object):
 
     @staticmethod
     def _nonlinearity(activation='relu'):
-        assert activation in ['relu', 'sigmoid', 'tanh', 'lrelu'], \
+        assert activation in ['relu', 'sigmoid', 'tanh', 'lrelu', None], \
                               "unspecified activation function."
         if activation == 'sigmoid':
             return tf.nn.sigmoid
@@ -80,6 +80,8 @@ class _BaseCNN(object):
             return tf.tanh
         elif activation == 'lrelu':
             return lambda x: tf.maximum(.2 * x, x)
+        elif activation is None:
+            return lambda x: x
 
     @property
     def x(self):
