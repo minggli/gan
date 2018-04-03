@@ -1,37 +1,79 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import tensorflow as tf
 # use framework pointer to download data.
 from tensorflow.examples.tutorials.mnist import input_data
 
-from cnn import BasicCNN, _BaseCNN
+from cnn import BasicCNN
 
 mnist = input_data.read_data_sets("mnist_data/", one_hot=True)
 
 print(mnist.train.next_batch(50)[0].shape)
 
-# generative network
-g = BasicCNN(shape=(1, 1, 100), num_classes=10)
-g_x, g_y_, g_is_train = g.x, g.y_, g.is_train
-g_conv_1 = g.add_conv_layer(g_x, [[1, 1, 100, 1024], [1024]], func='lrelu')
-g_conv_2 = g.add_conv_layer(g_conv_1, [[3, 3, 1024, 512], [512]], func='lrelu')
-g_conv_3 = g.add_conv_layer(g_conv_2, [[3, 3, 512, 256], [256]], func='lrelu')
-g_conv_4 = g.add_conv_layer(g_conv_3, [[3, 3, 256, 128], [128]], func='lrelu')
-g_o = g.add_conv_layer(g_conv_4, [[3, 3, 128, 1], [128]], func='tanh', bn=False)
-print(g_o.shape)
+with tf.variable_scope('Generator', reuse=False):
+    # generative network
+    g = BasicCNN(shape=(1, 1, 100), num_classes=10)
+    g_x, g_y_, g_is_train = g.x, g.y_, g.is_train
+    g_conv_1 = g.add_conv_layer(g_x,
+                                [[1, 1, 100, 1024], [1024]],
+                                func='lrelu')
+    g_conv_2 = g.add_conv_layer(g_conv_1,
+                                [[3, 3, 1024, 512], [512]],
+                                func='lrelu')
+    g_conv_3 = g.add_conv_layer(g_conv_2,
+                                [[3, 3, 512, 256], [256]],
+                                func='lrelu')
+    g_conv_4 = g.add_conv_layer(g_conv_3,
+                                [[3, 3, 256, 128], [128]],
+                                func='lrelu')
+    g_o = g.add_conv_layer(g_conv_4,
+                           [[3, 3, 128, 1], [128]],
+                           func='tanh',
+                           bn=False)
 
-# discriminative network
-d = BasicCNN(shape=(28, 28, 1), num_classes=10)
-d_x, d_y_, d_is_train = d.x, d.y_, d.is_train
-d_conv_1 = d.add_conv_layer(d_x, [[3, 3, 1, 128], [128]], func='lrelu')
-d_conv_2 = d.add_conv_layer(d_conv_1, [[3, 3, 128, 256], [256]], func='lrelu')
-d_conv_3 = d.add_conv_layer(d_conv_2, [[3, 3, 256, 512], [512]], func='lrelu')
-d_conv_4 = d.add_conv_layer(d_conv_3, [[3, 3, 512, 1024], [1024]],
-                            func='lrelu')
-d_o = d.add_conv_layer(d_conv_4, [[3, 3, 1024, 1], [1]], func='sigmoid',
-                       bn=False)
-print(d_o.shape)
+# there is one single discriminative network hence variables reused
+with tf.variable_scope('Discriminator', reuse=False):
+    # discriminative network for real images
+    d_real = BasicCNN(shape=(28, 28, 1), num_classes=10)
+    d_real_x, d_real_y_, d_real_is_train = d_real.x, d_real.y_, d_real.is_train
+    d_real_conv_1 = d_real.add_conv_layer(d_real_x,
+                                          [[3, 3, 1, 128], [128]],
+                                          func='lrelu')
+    d_real_conv_2 = d_real.add_conv_layer(d_real_conv_1,
+                                          [[3, 3, 128, 256], [256]],
+                                          func='lrelu')
+    d_real_conv_3 = d_real.add_conv_layer(d_real_conv_2,
+                                          [[3, 3, 256, 512], [512]],
+                                          func='lrelu')
+    d_real_conv_4 = d_real.add_conv_layer(d_real_conv_3,
+                                          [[3, 3, 512, 1024], [1024]],
+                                          func='lrelu')
+    d_real_o = d_real.add_conv_layer(d_real_conv_4,
+                                     [[3, 3, 1024, 1], [1]],
+                                     func='sigmoid',
+                                     bn=False)
 
+with tf.variable_scope('Discriminator', reuse=True):
+    # discriminative network for fake (generated) images
+    d_fake = BasicCNN(shape=(28, 28, 1), num_classes=10)
+    d_fake_x, d_fake_y_, d_fake_is_train = d_fake.x, d_fake.y_, d_fake.is_train
+    d_fake_conv_1 = d_fake.add_conv_layer(d_fake_x,
+                                          [[3, 3, 1, 128], [128]],
+                                          func='lrelu')
+    d_fake_conv_2 = d_fake.add_conv_layer(d_fake_conv_1,
+                                          [[3, 3, 128, 256], [256]],
+                                          func='lrelu')
+    d_fake_conv_3 = d_fake.add_conv_layer(d_fake_conv_2,
+                                          [[3, 3, 256, 512], [512]],
+                                          func='lrelu')
+    d_fake_conv_4 = d_fake.add_conv_layer(d_fake_conv_3,
+                                          [[3, 3, 512, 1024], [1024]],
+                                          func='lrelu')
+    d_fake_o = d_fake.add_conv_layer(d_fake_conv_4,
+                                     [[3, 3, 1024, 1], [1]],
+                                     func='sigmoid',
+                                     bn=False)
 
-if __name__ == '__main__':
-    print(_BaseCNN._conv2d.__doc__)
+for var in tf.global_variables():
+    print(var.name)
