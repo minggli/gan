@@ -49,7 +49,7 @@ class _BaseCNN(object):
         """
         return tf.nn.conv2d(input=x,
                             filter=W,
-                            strides=[1, 1, 1, 1],
+                            strides=[1, 2, 2, 1],
                             padding='SAME')
 
     @staticmethod
