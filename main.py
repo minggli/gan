@@ -55,11 +55,11 @@ mnist_train = train("./mnist_data/").shuffle(1000).repeat().batch(BATCH_SIZE)
 
 # construct generative network using transposed convolution layers
 # (also known as deconvolution) generate images from white noise signal.
-with tf.variable_scope('generator', reuse=tf.AUTO_REUSE):
+with tf.variable_scope('generator', reuse=False):
     # generative network
     g_x = tf.random_normal([-1, 1, 1, 100], name='gaussian')
     with tf.variable_scope('deconv_1'):
-        W = weight_variable([1, 1, 1024, 100])
+        W = weight_variable([4, 4, 1024, 100])
         b = bias_variable([1024])
         g_conv_1 = lrelu(tf.nn.conv2d_transpose(g_x,
                                                 filter=W,
@@ -145,7 +145,6 @@ with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
     # discriminative network for real images
     d_real_x = tf.placeholder(dtype=tf.float32, shape=[None, 64, 64, 1],
                               name='feature')
-
     with tf.variable_scope('conv_1'):
         W = weight_variable([4, 4, 1, 128])
         b = bias_variable([128])
@@ -183,7 +182,6 @@ with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
                                      padding='VALID') + b
     d_real_o = tf.nn.sigmoid(d_real_logits)
 
-
 # cost functions for D(x) and G(z) respectively
 d_real_xentropy = tf.nn.sigmoid_cross_entropy_with_logits(
                                     logits=d_real_logits,
@@ -197,8 +195,11 @@ g_xentropy = tf.nn.sigmoid_cross_entropy_with_logits(
                                     labels=tf.ones([BATCH_SIZE, 1, 1, 1]))
 g_loss = tf.reduce_mean(g_xentropy)
 
-for var in tf.global_variables("generator"):
-    print(var)
-
-for var in tf.global_variables("discriminator"):
-    print(var)
+# Mini-batch SGD optimisers for J for both Networks
+with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
+    d_train_step = tf.train.RMSPropOptimizer(learning_rate=1e-2).minimize(
+                            d_loss,
+                            var_list=tf.trainable_variables('discriminator'))
+    g_train_step = tf.train.RMSPropOptimizer(learning_rate=1e-2).minimize(
+                            g_loss,
+                            var_list=tf.trainable_variables('generator'))
