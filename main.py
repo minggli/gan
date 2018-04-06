@@ -28,24 +28,17 @@ def bias_variable(shape):
     return tf.get_variable('bias', shape=shape, initializer=init)
 
 
-def batch_norm(is_training):
+def batch_norm(params):
     def decorator(func):
         """batch normalization"""
         @wraps(func)
         def wrapper(arg):
-            return tf.layers.batch_normalization(inputs=func(arg),
-                                                 axis=-1,
-                                                 momentum=0.99,
-                                                 epsilon=0.001,
-                                                 center=True,
-                                                 scale=True,
-                                                 training=is_training,
-                                                 reuse=None)
+            return tf.layers.batch_normalization(inputs=func(arg), **params)
         return wrapper
     return decorator
 
 
-@batch_norm(is_train)
+@batch_norm({'training': is_train})
 def lrelu(tensor, alpha=.2):
     """Leaky Rectified Linear Unit, alleviating gradient vanishing."""
     return tf.maximum(alpha * tensor, tensor)
