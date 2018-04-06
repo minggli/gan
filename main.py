@@ -8,10 +8,8 @@ data.
 import tensorflow as tf
 
 from functools import wraps
-from models.official.mnist.dataset import train
+from config import BATCH_SIZE
 
-
-BATCH_SIZE = 50
 tf.set_random_seed(0)
 
 # global is_train flag for both generative and discriminative models.
@@ -43,8 +41,6 @@ def lrelu(tensor, alpha=.2):
     """Leaky Rectified Linear Unit, alleviating gradient vanishing."""
     return tf.maximum(alpha * tensor, tensor)
 
-
-mnist_train = train("./mnist_data/").shuffle(1000).repeat().batch(BATCH_SIZE)
 
 # construct generative network using transposed convolution layers
 # (also known as deconvolution) generate images from white noise signal.
@@ -196,3 +192,11 @@ with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
     g_train_step = tf.train.RMSPropOptimizer(learning_rate=1e-2).minimize(
                             g_loss,
                             var_list=tf.trainable_variables('generator'))
+
+dis_vars = [var for var in tf.trainable_variables('dis')
+            if 'weight' in var.name]
+gen_vars = [var for var in tf.trainable_variables('gen')
+            if 'weight' in var.name]
+
+for d_var, g_var in zip(dis_vars, gen_vars):
+    print('{0:<90}{1}'.format(str(d_var), str(g_var)))
