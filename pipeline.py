@@ -1,25 +1,16 @@
 import tensorflow as tf
 
 from models.official.mnist.dataset import train, test
-from config import BATCH_SIZE
-sess = tf.Session()
+from config import NNConfig
 
-mnist_train = train("./mnist_data/")
-mnist_test = test("./mnist_data/")
-mnist = mnist_train.concatenate(mnist_test)
-mnist_batch = mnist.shuffle(1000).repeat().batch(BATCH_SIZE)
-mnist_batch_iter = mnist_batch.make_initializable_iterator()
+__all__ = ['mnist_tensor']
 
-#
-# def fetch_batch(Iterator):
-#     with tf.Session() as sess:
-#         sess.run(tf.global_variables_initializer())
-#         data, labels = Iterator.get_next()
-#     return data.eval(session=tf.Session())
-#
+BATCH_SIZE = NNConfig.BATCH_SIZE
 
-with sess:
-    init = mnist_batch_iter.initializer
-    sess.run(init)
-    data, labels = mnist_batch_iter
-    print(data.eval(session=sess))
+mnist = train("./mnist_data/").concatenate(test("./mnist_data/"))
+mnist_images = mnist.map(lambda img, label: tf.reshape(img, [28, 28, 1]))
+mnist_images_resized = mnist_images.map(
+                            lambda x: tf.image.resize_images(x, [64, 64]))
+mnist_batch = mnist_images_resized.shuffle(1000).repeat().batch(BATCH_SIZE)
+mnist_batch_iter = mnist_batch.make_one_shot_iterator()
+mnist_tensor = mnist_batch_iter.get_next()
