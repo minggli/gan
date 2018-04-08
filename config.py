@@ -4,4 +4,11 @@ config
 module keeping some of model parameters
 """
 
-BATCH_SIZE = 50
+
+class BaseConfig(object):
+    pass
+
+
+class NNConfig(BaseConfig):
+    BATCH_SIZE = 50
+    EPOCH = 100
