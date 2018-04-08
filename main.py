@@ -9,19 +9,11 @@ import tensorflow as tf
 
 from functools import wraps
 from config import NNConfig
-
-from models.official.mnist.dataset import train, test
+from pipeline import mnist_tensor
 
 BATCH_SIZE = NNConfig.BATCH_SIZE
 EPOCH = NNConfig.EPOCH
-
-mnist = train("./mnist_data/").concatenate(test("./mnist_data/"))
-mnist_images = mnist.map(lambda img, label: tf.reshape(img, [28, 28, 1]))
-mnist_images_resized = mnist_images.map(
-                            lambda x: tf.image.resize_images(x, [64, 64]))
-mnist_batch = mnist_images_resized.shuffle(1000).repeat().batch(BATCH_SIZE)
-mnist_batch_iter = mnist_batch.make_one_shot_iterator()
-d_real_x = mnist_batch_iter.get_next()
+LR = NNConfig.ALPHA
 
 tf.set_random_seed(0)
 
@@ -114,6 +106,7 @@ with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
         W = weight_variable([4, 4, 1, 128])
         b = bias_variable([128])
         d_fake_conv_1 = lrelu(tf.nn.conv2d(input=g_o,
+                                           # takes in output of generator
                                            filter=W,
                                            strides=[1, 2, 2, 1],
                                            padding='SAME') + b)
@@ -153,7 +146,7 @@ with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
     with tf.variable_scope('conv_1'):
         W = weight_variable([4, 4, 1, 128])
         b = bias_variable([128])
-        d_real_conv_1 = lrelu(tf.nn.conv2d(input=d_real_x,
+        d_real_conv_1 = lrelu(tf.nn.conv2d(input=mnist_tensor,
                                            filter=W,
                                            strides=[1, 2, 2, 1],
                                            padding='SAME') + b)
@@ -202,10 +195,10 @@ g_loss = tf.reduce_mean(g_xentropy)
 
 # Mini-batch SGD optimisers for J for both Networks
 with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
-    d_train_step = tf.train.RMSPropOptimizer(learning_rate=1e-2).minimize(
+    d_train_step = tf.train.RMSPropOptimizer(learning_rate=LR).minimize(
                             d_loss,
                             var_list=tf.trainable_variables('discriminator'))
-    g_train_step = tf.train.RMSPropOptimizer(learning_rate=1e-2).minimize(
+    g_train_step = tf.train.RMSPropOptimizer(learning_rate=LR).minimize(
                             g_loss,
                             var_list=tf.trainable_variables('generator'))
 
@@ -217,7 +210,6 @@ gen_vars = [var for var in tf.trainable_variables('gen')
 for d_var, g_var in zip(dis_vars, gen_vars):
     print('{0:<90}{1}'.format(str(d_var), str(g_var)))
 
-
 sess = tf.Session()
 init_op = tf.global_variables_initializer()
 
@@ -228,5 +220,7 @@ for global_step in range(EPOCH):
                                feed_dict={is_train: True})
     _, g_loss_score = sess.run(fetches=[g_train_step, g_loss],
                                feed_dict={is_train: True})
-    print("Discriminator log loss {0:.4f}, Generator log loss {1:.4f}".format(
-            d_loss_score, g_loss_score))
+    print("Epoch {0:<2} of {1}, "
+          "Discriminator log loss {2:.4f}, "
+          "Generator log loss {3:.4f}".format(
+            global_step, EPOCH, d_loss_score, g_loss_score))
