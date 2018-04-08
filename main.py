@@ -8,7 +8,20 @@ data.
 import tensorflow as tf
 
 from functools import wraps
-from config import BATCH_SIZE
+from config import NNConfig
+
+from models.official.mnist.dataset import train, test
+
+BATCH_SIZE = NNConfig.BATCH_SIZE
+EPOCH = NNConfig.EPOCH
+
+mnist = train("./mnist_data/").concatenate(test("./mnist_data/"))
+mnist_images = mnist.map(lambda img, label: tf.reshape(img, [28, 28, 1]))
+mnist_images_resized = mnist_images.map(
+                            lambda x: tf.image.resize_images(x, [64, 64]))
+mnist_batch = mnist_images_resized.shuffle(1000).repeat().batch(BATCH_SIZE)
+mnist_batch_iter = mnist_batch.make_one_shot_iterator()
+d_real_x = mnist_batch_iter.get_next()
 
 tf.set_random_seed(0)
 
@@ -46,47 +59,52 @@ def lrelu(tensor, alpha=.2):
 # (also known as deconvolution) generate images from white noise signal.
 with tf.variable_scope('generator', reuse=False):
     # generative network
-    g_x = tf.random_normal([-1, 1, 1, 100], name='gaussian')
+    g_x = tf.random_normal([BATCH_SIZE, 1, 1, 100], name='gaussian')
     with tf.variable_scope('deconv_1'):
         W = weight_variable([4, 4, 1024, 100])
         b = bias_variable([1024])
-        g_conv_1 = lrelu(tf.nn.conv2d_transpose(g_x,
-                                                filter=W,
-                                                output_shape=[-1, 4, 4, 1024],
-                                                strides=[1, 1, 1, 1],
-                                                padding='VALID') + b)
+        g_conv_1 = lrelu(tf.nn.conv2d_transpose(
+                            g_x,
+                            filter=W,
+                            output_shape=[BATCH_SIZE, 4, 4, 1024],
+                            strides=[1, 1, 1, 1],
+                            padding='VALID') + b)
     with tf.variable_scope('deconv_2'):
         W = weight_variable([4, 4, 512, 1024])
         b = bias_variable([512])
-        g_conv_2 = lrelu(tf.nn.conv2d_transpose(g_conv_1,
-                                                filter=W,
-                                                output_shape=[-1, 8, 8, 512],
-                                                strides=[1, 2, 2, 1],
-                                                padding='SAME') + b)
+        g_conv_2 = lrelu(tf.nn.conv2d_transpose(
+                            g_conv_1,
+                            filter=W,
+                            output_shape=[BATCH_SIZE, 8, 8, 512],
+                            strides=[1, 2, 2, 1],
+                            padding='SAME') + b)
     with tf.variable_scope('deconv_3'):
         W = weight_variable([4, 4, 256, 512])
         b = bias_variable([256])
-        g_conv_3 = lrelu(tf.nn.conv2d_transpose(g_conv_2,
-                                                filter=W,
-                                                output_shape=[-1, 16, 16, 256],
-                                                strides=[1, 2, 2, 1],
-                                                padding='SAME') + b)
+        g_conv_3 = lrelu(tf.nn.conv2d_transpose(
+                            g_conv_2,
+                            filter=W,
+                            output_shape=[BATCH_SIZE, 16, 16, 256],
+                            strides=[1, 2, 2, 1],
+                            padding='SAME') + b)
     with tf.variable_scope('deconv_4'):
         W = weight_variable([4, 4, 128, 256])
         b = bias_variable([128])
-        g_conv_4 = lrelu(tf.nn.conv2d_transpose(g_conv_3,
-                                                filter=W,
-                                                output_shape=[-1, 32, 32, 128],
-                                                strides=[1, 2, 2, 1],
-                                                padding='SAME') + b)
+        g_conv_4 = lrelu(tf.nn.conv2d_transpose(
+                            g_conv_3,
+                            filter=W,
+                            output_shape=[BATCH_SIZE, 32, 32, 128],
+                            strides=[1, 2, 2, 1],
+                            padding='SAME') + b)
     with tf.variable_scope('logits'):
         W = weight_variable([4, 4, 1, 128])
         b = bias_variable([1])
-        g_logits = tf.nn.conv2d_transpose(g_conv_4,
-                                          filter=W,
-                                          output_shape=[-1, 64, 64, 1],
-                                          strides=[1, 2, 2, 1],
-                                          padding='SAME') + b
+        g_logits = tf.nn.conv2d_transpose(
+                            g_conv_4,
+                            filter=W,
+                            output_shape=[BATCH_SIZE, 64, 64, 1],
+                            strides=[1, 2, 2, 1],
+                            padding='SAME') + b
     g_o = tf.nn.tanh(g_logits)
 
 # there is only one single discriminative network with variables reused
@@ -132,8 +150,6 @@ with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
 # there is only one single discriminative network with variables reused
 with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
     # discriminative network for real images
-    d_real_x = tf.placeholder(dtype=tf.float32, shape=[None, 64, 64, 1],
-                              name='feature')
     with tf.variable_scope('conv_1'):
         W = weight_variable([4, 4, 1, 128])
         b = bias_variable([128])
@@ -200,3 +216,17 @@ gen_vars = [var for var in tf.trainable_variables('gen')
 
 for d_var, g_var in zip(dis_vars, gen_vars):
     print('{0:<90}{1}'.format(str(d_var), str(g_var)))
+
+
+sess = tf.Session()
+init_op = tf.global_variables_initializer()
+
+sess.run(init_op)
+
+for global_step in range(EPOCH):
+    _, d_loss_score = sess.run(fetches=[d_train_step, d_loss],
+                               feed_dict={is_train: True})
+    _, g_loss_score = sess.run(fetches=[g_train_step, g_loss],
+                               feed_dict={is_train: True})
+    print("Discriminator log loss {0:.4f}, Generator log loss {1:.4f}".format(
+            d_loss_score, g_loss_score))
