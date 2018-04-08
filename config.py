@@ -10,6 +10,6 @@ class BaseConfig(object):
 
 
 class NNConfig(BaseConfig):
-    BATCH_SIZE = 50
+    BATCH_SIZE = 100
     EPOCH = 100
     ALPHA = 1e-4
