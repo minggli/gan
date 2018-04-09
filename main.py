@@ -7,9 +7,9 @@ data.
 
 import tensorflow as tf
 
-from functools import wraps
 from config import NNConfig
 from pipeline import mnist_tensor
+from helpers import weight_variable, bias_variable, batch_norm
 
 BATCH_SIZE = NNConfig.BATCH_SIZE
 EPOCH = NNConfig.EPOCH
@@ -19,26 +19,6 @@ tf.set_random_seed(0)
 
 # global is_train flag for both generative and discriminative models.
 is_train = tf.placeholder_with_default(input=False, shape=[], name='is_train')
-
-
-def weight_variable(shape):
-    init = tf.truncated_normal_initializer(stddev=0.1)
-    return tf.get_variable('weight', shape=shape, initializer=init)
-
-
-def bias_variable(shape):
-    init = tf.constant_initializer(0.1)
-    return tf.get_variable('bias', shape=shape, initializer=init)
-
-
-def batch_norm(params):
-    def decorator(func):
-        """batch normalization"""
-        @wraps(func)
-        def wrapper(arg):
-            return tf.layers.batch_normalization(inputs=func(arg), **params)
-        return wrapper
-    return decorator
 
 
 @batch_norm({'training': is_train})
@@ -220,7 +200,11 @@ for global_step in range(EPOCH):
                                feed_dict={is_train: True})
     _, g_loss_score = sess.run(fetches=[g_train_step, g_loss],
                                feed_dict={is_train: True})
-    print("Epoch {0:<2} of {1}, "
-          "Discriminator log loss {2:.4f}, "
+    print("Epoch {0:<2} of {1}, Discriminator log loss {2:.4f}, "
           "Generator log loss {3:.4f}".format(
             global_step, EPOCH, d_loss_score, g_loss_score))
+
+    data_sample, noise_sample = sess.run(fetches=[mnist_tensor, g_x],
+                                         feed_dict={is_train: True})
+    print(data_sample[0].ravel().mean())
+    print(noise_sample[0].ravel().mean())
