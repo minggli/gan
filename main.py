@@ -4,16 +4,21 @@
 Simple Deep Convolutional Generative Adversial Networks (DCGANs) with MNIST
 data.
 """
-
 import tensorflow as tf
 
 from config import NNConfig
 from pipeline import mnist_tensor
 from helpers import weight_variable, bias_variable, batch_norm
 
+FLAGS = tf.app.flags.FLAGS
+
+tf.app.flags.DEFINE_integer('num_epochs', 100,
+                            """Number of epochs to run.""")
+
 BATCH_SIZE = NNConfig.BATCH_SIZE
-EPOCH = NNConfig.EPOCH
+EPOCH = FLAGS.num_epochs or NNConfig.EPOCH
 LR = NNConfig.ALPHA
+print(EPOCH)
 
 tf.set_random_seed(0)
 
