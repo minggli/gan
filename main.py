@@ -7,23 +7,14 @@ data.
 import tensorflow as tf
 
 from config import NNConfig
-from pipeline import mnist_tensor
+from pipeline import iter, mnist_batch_iter
 from helpers import weight_variable, bias_variable, batch_norm
 
-FLAGS = tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_integer('num_epochs', 100,
-                            """Number of epochs to run.""")
-
-BATCH_SIZE = NNConfig.BATCH_SIZE
-EPOCH = FLAGS.num_epochs or NNConfig.EPOCH
-LR = NNConfig.ALPHA
-print(EPOCH)
-
-tf.set_random_seed(0)
+BATCH_SIZE, EPOCH, LR = NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA
 
 # global is_train flag for both generative and discriminative models.
-is_train = tf.placeholder_with_default(input=True, shape=[], name='is_train')
+is_train = tf.placeholder_with_default(input=False, shape=[], name='is_train')
 
 
 @batch_norm({'training': is_train})
@@ -36,7 +27,7 @@ def lrelu(tensor, alpha=.2):
 # (also known as deconvolution) generate images from white noise signal.
 with tf.variable_scope('generator', reuse=False):
     # generative network
-    g_x = tf.random_normal([BATCH_SIZE, 1, 1, 100], name='gaussian')
+    g_x = tf.random_normal([BATCH_SIZE, 1, 1, 100], name='gaussian_generator')
     with tf.variable_scope('deconv_1'):
         W = weight_variable([4, 4, 1024, 100])
         b = bias_variable([1024])
@@ -131,7 +122,7 @@ with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
     with tf.variable_scope('conv_1'):
         W = weight_variable([4, 4, 1, 128])
         b = bias_variable([128])
-        d_real_conv_1 = lrelu(tf.nn.conv2d(input=mnist_tensor,
+        d_real_conv_1 = lrelu(tf.nn.conv2d(input=iter,
                                            filter=W,
                                            strides=[1, 2, 2, 1],
                                            padding='SAME') + b)
@@ -180,36 +171,32 @@ g_loss = tf.reduce_mean(g_xentropy)
 
 # Mini-batch SGD optimisers for J for both Networks
 with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
-    d_train_step = tf.train.RMSPropOptimizer(learning_rate=LR).minimize(
+    d_train_step = tf.train.AdamOptimizer(learning_rate=LR, beta1=.5).minimize(
                             d_loss,
                             var_list=tf.trainable_variables('discriminator'))
-    g_train_step = tf.train.RMSPropOptimizer(learning_rate=LR).minimize(
+    g_train_step = tf.train.AdamOptimizer(learning_rate=LR, beta1=.5).minimize(
                             g_loss,
                             var_list=tf.trainable_variables('generator'))
-
-dis_vars = [var for var in tf.trainable_variables('dis')
-            if 'weight' in var.name]
-gen_vars = [var for var in tf.trainable_variables('gen')
-            if 'weight' in var.name]
-
-for d_var, g_var in zip(dis_vars, gen_vars):
-    print('{0:<90}{1}'.format(str(d_var), str(g_var)))
 
 sess = tf.Session()
 init_op = tf.global_variables_initializer()
 
 sess.run(init_op)
 
-for global_step in range(EPOCH):
-    _, d_loss_score = sess.run(fetches=[d_train_step, d_loss],
-                               feed_dict={is_train: True})
-    _, g_loss_score = sess.run(fetches=[g_train_step, g_loss],
-                               feed_dict={is_train: True})
-    print("Epoch {0:<2} of {1}, Discriminator log loss {2:.4f}, "
-          "Generator log loss {3:.4f}".format(
-            global_step, EPOCH, d_loss_score, g_loss_score))
-
-    data_sample, noise_sample = sess.run(fetches=[mnist_tensor, g_x],
-                                         feed_dict={is_train: True})
-    print(data_sample[0].ravel().mean())
-    print(noise_sample[0].ravel().mean())
+for epoch in range(1, EPOCH + 1):
+    step = 0
+    sess.run(mnist_batch_iter.initializer)
+    while True:
+        step += 1
+        try:
+            _, d_loss_score = sess.run(fetches=[d_train_step, d_loss],
+                                       feed_dict={is_train: True})
+            _, g_loss_score = sess.run(fetches=[g_train_step, g_loss],
+                                       feed_dict={is_train: True})
+            print("Epoch {0} of {1}, step {2}, "
+                  "Discriminator log loss {3:.4f}, "
+                  "Generator log loss {4:.4f}".format(
+                    epoch, EPOCH, step, d_loss_score, g_loss_score))
+        except tf.errors.OutOfRangeError:
+            print("Epoch {0} has finished.".format(epoch))
+            break
