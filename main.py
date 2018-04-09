@@ -18,7 +18,7 @@ LR = NNConfig.ALPHA
 tf.set_random_seed(0)
 
 # global is_train flag for both generative and discriminative models.
-is_train = tf.placeholder_with_default(input=False, shape=[], name='is_train')
+is_train = tf.placeholder_with_default(input=True, shape=[], name='is_train')
 
 
 @batch_norm({'training': is_train})
