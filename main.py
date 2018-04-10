@@ -9,7 +9,7 @@ import tensorflow as tf
 
 from config import NNConfig
 from pipeline import iter, mnist_batch_iter
-from helpers import weight_variable, bias_variable, batch_norm
+from helpers import weight_variable, bias_variable
 
 
 BATCH_SIZE, EPOCH, LR = NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA
@@ -21,9 +21,13 @@ d_real_x = tf.placeholder(shape=[None, 64, 64, 1], dtype=tf.float32)
 g_x = tf.placeholder(shape=[None, 1, 1, 100], dtype=tf.float32)
 
 
-@batch_norm({'training': is_train})
+def batch_norm(tensor, params={'training': is_train}):
+    return tf.layers.batch_normalization(inputs=tensor, **params)
+
+
 def lrelu(tensor, alpha=.2):
     """Leaky Rectified Linear Unit, alleviating gradient vanishing."""
+    tensor = batch_norm(tensor)
     return tf.maximum(alpha * tensor, tensor)
 
 
