@@ -73,7 +73,7 @@ with tf.variable_scope('generator', reuse=False):
                             output_shape=[BATCH_SIZE, 64, 64, 1],
                             strides=[1, 2, 2, 1],
                             padding='SAME') + b
-    g_o = tf.nn.sigmoid(g_logits)
+    g_o = tf.nn.tanh(g_logits)
 
 # there is only one single discriminative network with variables reused
 with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
@@ -119,10 +119,11 @@ with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
 # there is only one single discriminative network with variables reused
 with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
     # discriminative network for real images
+    d_real_x = tf.placeholder(shape=[None, 64, 64, 1], dtype=tf.float32)
     with tf.variable_scope('conv_1'):
         W = weight_variable([4, 4, 1, 128])
         b = bias_variable([128])
-        d_real_conv_1 = lrelu(tf.nn.conv2d(input=iter,
+        d_real_conv_1 = lrelu(tf.nn.conv2d(input=d_real_x,
                                            filter=W,
                                            strides=[1, 2, 2, 1],
                                            padding='SAME') + b)
@@ -174,7 +175,7 @@ with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
     d_train_step = tf.train.AdamOptimizer(LR, beta1=.5).minimize(
                             d_loss,
                             var_list=tf.trainable_variables('discriminator'))
-    g_train_step = tf.train.AdamOptimizer(LR * 1.5, beta1=.5).minimize(
+    g_train_step = tf.train.AdamOptimizer(LR, beta1=.5).minimize(
                             g_loss,
                             var_list=tf.trainable_variables('generator'))
 
@@ -189,10 +190,13 @@ for epoch in range(1, EPOCH + 1):
     while True:
         step += 1
         try:
+            images = sess.run(iter, feed_dict={is_train: True})
             _, d_loss_score = sess.run(fetches=[d_train_step, d_loss],
-                                       feed_dict={is_train: True})
+                                       feed_dict={d_real_x: images,
+                                                  is_train: True})
             _, g_loss_score = sess.run(fetches=[g_train_step, g_loss],
-                                       feed_dict={is_train: True})
+                                       feed_dict={d_real_x: images,
+                                                  is_train: True})
             print("Epoch {0} of {1}, step {2}, "
                   "Discriminator log loss {3:.4f}, "
                   "Generator log loss {4:.4f}".format(
