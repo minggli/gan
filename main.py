@@ -73,7 +73,7 @@ with tf.variable_scope('generator', reuse=False):
                             output_shape=[BATCH_SIZE, 64, 64, 1],
                             strides=[1, 2, 2, 1],
                             padding='SAME') + b
-    g_o = tf.nn.tanh(g_logits)
+    g_o = tf.nn.sigmoid(g_logits)
 
 # there is only one single discriminative network with variables reused
 with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
