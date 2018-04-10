@@ -171,10 +171,10 @@ g_loss = tf.reduce_mean(g_xentropy)
 
 # Mini-batch SGD optimisers for J for both Networks
 with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
-    d_train_step = tf.train.AdamOptimizer(learning_rate=LR, beta1=.5).minimize(
+    d_train_step = tf.train.AdamOptimizer(LR, beta1=.5).minimize(
                             d_loss,
                             var_list=tf.trainable_variables('discriminator'))
-    g_train_step = tf.train.AdamOptimizer(learning_rate=LR, beta1=.5).minimize(
+    g_train_step = tf.train.AdamOptimizer(LR * 1.5, beta1=.5).minimize(
                             g_loss,
                             var_list=tf.trainable_variables('generator'))
 
