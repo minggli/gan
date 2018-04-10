@@ -193,7 +193,7 @@ for epoch in range(1, EPOCH + 1):
         step += 1
         try:
             images = sess.run(iter, feed_dict={is_train: True})
-            gaussian_noise = np.random_normal(0, 1,
+            gaussian_noise = np.random.normal(0, 1,
                                               size=[BATCH_SIZE, 1, 1, 100])
             dictionary = {d_real_x: images,
                           g_x: gaussian_noise,
