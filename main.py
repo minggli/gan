@@ -197,17 +197,17 @@ for epoch in range(1, EPOCH + 1):
         step += 1
         try:
             images = sess.run(iter, feed_dict={is_train: True})
-            gaussian_noise = np.random.normal(0, 1,
-                                              size=[BATCH_SIZE, 1, 1, 100])
-            dictionary = {d_real_x: images,
-                          g_x: gaussian_noise,
-                          is_train: True}
+            noise1, noise2 = \
+                [np.random.normal(0, 1, size=[BATCH_SIZE, 1, 1, 100])
+                 for _ in range(2)]
             _, d_loss_score = \
                 sess.run(fetches=[d_train_step, d_loss],
-                         feed_dict=dictionary)
+                         feed_dict={d_real_x: images,
+                                    g_x: noise1, is_train: True})
             _, g_loss_score = \
                 sess.run(fetches=[g_train_step, g_loss],
-                         feed_dict=dictionary)
+                         feed_dict={d_real_x: images,
+                                    g_x: noise2, is_train: True})
             print("Epoch {0} of {1}, step {2}, "
                   "Discriminator log loss {3:.4f}, "
                   "Generator log loss {4:.4f}".format(
