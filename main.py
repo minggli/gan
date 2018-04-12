@@ -4,7 +4,6 @@
 Simple Deep Convolutional Generative Adversial Networks (DCGANs) with MNIST
 data.
 """
-import numpy as np
 import tensorflow as tf
 
 from config import NNConfig
@@ -17,8 +16,6 @@ BATCH_SIZE, EPOCH, LR = NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA
 # global is_train flag for both generative and discriminative models.
 is_train = tf.placeholder_with_default(input=False, shape=[], name='is_train')
 d_real_x = tf.placeholder(shape=[None, 64, 64, 1], dtype=tf.float32)
-# g_x = tf.random_normal([BATCH_SIZE, 1, 1, 100], name='gaussian_generator')
-g_x = tf.placeholder(shape=[None, 1, 1, 100], dtype=tf.float32)
 
 
 def batch_norm(tensor, params={'training': is_train}):
@@ -35,6 +32,7 @@ def lrelu(tensor, alpha=.2):
 # (also known as deconvolution) generate images from white noise signal.
 with tf.variable_scope('generator', reuse=False):
     # generative network
+    g_x = tf.random_normal([BATCH_SIZE, 1, 1, 100])
     with tf.variable_scope('deconv_1'):
         W = weight_variable([4, 4, 1024, 100])
         b = bias_variable([1024])
@@ -80,7 +78,7 @@ with tf.variable_scope('generator', reuse=False):
                             output_shape=[BATCH_SIZE, 64, 64, 1],
                             strides=[1, 2, 2, 1],
                             padding='SAME') + b
-    g_o = tf.nn.tanh(g_logits)
+    g_o = tf.nn.sigmoid(g_logits)
 
 # there is only one single discriminative network with variables reused
 with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
@@ -197,17 +195,12 @@ for epoch in range(1, EPOCH + 1):
         step += 1
         try:
             images = sess.run(iter, feed_dict={is_train: True})
-            noise1, noise2 = \
-                [np.random.normal(0, 1, size=[BATCH_SIZE, 1, 1, 100])
-                 for _ in range(2)]
             _, d_loss_score = \
                 sess.run(fetches=[d_train_step, d_loss],
-                         feed_dict={d_real_x: images,
-                                    g_x: noise1, is_train: True})
+                         feed_dict={d_real_x: images, is_train: True})
             _, g_loss_score = \
                 sess.run(fetches=[g_train_step, g_loss],
-                         feed_dict={d_real_x: images,
-                                    g_x: noise2, is_train: True})
+                         feed_dict={d_real_x: images, is_train: True})
             print("Epoch {0} of {1}, step {2}, "
                   "Discriminator log loss {3:.4f}, "
                   "Generator log loss {4:.4f}".format(
