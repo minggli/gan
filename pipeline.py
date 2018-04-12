@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from models.official.mnist.dataset import train, test
+from models.official.mnist.dataset import train
 from config import NNConfig
 
 __all__ = ['iter', 'mnist_batch_iter']
@@ -8,7 +8,7 @@ __all__ = ['iter', 'mnist_batch_iter']
 BATCH_SIZE = NNConfig.BATCH_SIZE
 EPOCH = NNConfig.EPOCH
 
-mnist = train("./mnist_data/").concatenate(test("./mnist_data/"))
+mnist = train("./mnist_data/")
 mnist_images = mnist.map(lambda img, label: tf.reshape(img, [28, 28, 1]))
 mnist_images = mnist_images.map(lambda x: tf.image.resize_images(x, [64, 64]))
 
