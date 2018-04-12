@@ -18,4 +18,4 @@ class BaseConfig(object):
 class NNConfig(BaseConfig):
     BATCH_SIZE = 100
     EPOCH = FLAGS.num_epochs
-    ALPHA = 1e-4
+    ALPHA = 2e-4
