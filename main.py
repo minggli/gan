@@ -4,7 +4,10 @@
 Simple Deep Convolutional Generative Adversial Networks (DCGANs) with MNIST
 data.
 """
+import numpy as np
 import tensorflow as tf
+
+from functools import wraps
 
 from config import NNConfig
 from pipeline import iter, mnist_batch_iter
@@ -16,15 +19,35 @@ BATCH_SIZE, EPOCH, LR = NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA
 # global is_train flag for both generative and discriminative models.
 is_train = tf.placeholder_with_default(input=False, shape=[], name='is_train')
 d_real_x = tf.placeholder(shape=[None, 64, 64, 1], dtype=tf.float32)
+g_x = tf.placeholder(shape=[BATCH_SIZE, 1, 1, 100], dtype=tf.float32)
 
 
-def batch_norm(tensor, params={'training': is_train}):
-    return tf.layers.batch_normalization(inputs=tensor, **params)
+def gaussian_noise(ph):
+    return np.random.normal(0, 1, size=ph.shape)
 
 
+# def batch_norm(tensor, params={'training': is_train}):
+#     return tf.layers.batch_normalization(inputs=tensor, **params)
+#
+#
+# def lrelu(tensor, alpha=.2):
+#     """Leaky Rectified Linear Unit, alleviating gradient vanishing."""
+#     tensor = batch_norm(tensor)
+#     return tf.maximum(alpha * tensor, tensor)
+
+
+def batch_norm(params):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(func):
+            return tf.layers.batch_normalization(inputs=func, **params)
+        return wrapper
+    return decorator
+
+
+@batch_norm({'training': is_train})
 def lrelu(tensor, alpha=.2):
     """Leaky Rectified Linear Unit, alleviating gradient vanishing."""
-    tensor = batch_norm(tensor)
     return tf.maximum(alpha * tensor, tensor)
 
 
@@ -32,7 +55,6 @@ def lrelu(tensor, alpha=.2):
 # (also known as deconvolution) generate images from white noise signal.
 with tf.variable_scope('generator', reuse=False):
     # generative network
-    g_x = tf.random_normal([BATCH_SIZE, 1, 1, 100])
     with tf.variable_scope('deconv_1'):
         W = weight_variable([4, 4, 1024, 100])
         b = bias_variable([1024])
@@ -78,7 +100,7 @@ with tf.variable_scope('generator', reuse=False):
                             output_shape=[BATCH_SIZE, 64, 64, 1],
                             strides=[1, 2, 2, 1],
                             padding='SAME') + b
-    g_o = tf.nn.sigmoid(g_logits)
+    g_o = tf.nn.tanh(g_logits)
 
 # there is only one single discriminative network with variables reused
 with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
@@ -167,19 +189,19 @@ d_real_xentropy = tf.nn.sigmoid_cross_entropy_with_logits(
                                     labels=tf.ones([BATCH_SIZE, 1, 1, 1]))
 d_fake_xentropy = tf.nn.sigmoid_cross_entropy_with_logits(
                                     logits=d_fake_logits,
-                                    labels=tf.zeros([BATCH_SIZE, 1, 1, 1]))
+                                    labels=tf.zeros_like(d_real_xentropy))
 d_loss = tf.reduce_mean(d_real_xentropy) + tf.reduce_mean(d_fake_xentropy)
 g_xentropy = tf.nn.sigmoid_cross_entropy_with_logits(
                                     logits=d_fake_logits,
-                                    labels=tf.ones([BATCH_SIZE, 1, 1, 1]))
+                                    labels=tf.ones_like(d_real_xentropy))
 g_loss = tf.reduce_mean(g_xentropy)
 
 # Mini-batch SGD optimisers for J for both Networks
 with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
-    d_train_step = tf.train.AdamOptimizer(LR, beta1=.5).minimize(
+    d_train_step = tf.train.RMSPropOptimizer(LR).minimize(
                             d_loss,
                             var_list=tf.trainable_variables('discriminator'))
-    g_train_step = tf.train.AdamOptimizer(LR, beta1=.5).minimize(
+    g_train_step = tf.train.RMSPropOptimizer(LR).minimize(
                             g_loss,
                             var_list=tf.trainable_variables('generator'))
 
@@ -195,12 +217,14 @@ for epoch in range(1, EPOCH + 1):
         step += 1
         try:
             images = sess.run(iter, feed_dict={is_train: True})
-            _, d_loss_score = \
-                sess.run(fetches=[d_train_step, d_loss],
-                         feed_dict={d_real_x: images, is_train: True})
-            _, g_loss_score = \
-                sess.run(fetches=[g_train_step, g_loss],
-                         feed_dict={d_real_x: images, is_train: True})
+            _, d_loss_score = sess.run(fetches=[d_train_step, d_loss],
+                                       feed_dict={d_real_x: images,
+                                                  g_x: gaussian_noise(g_x),
+                                                  is_train: True})
+            _, g_loss_score = sess.run(fetches=[g_train_step, g_loss],
+                                       feed_dict={d_real_x: images,
+                                                  g_x: gaussian_noise(g_x),
+                                                  is_train: True})
             print("Epoch {0} of {1}, step {2}, "
                   "Discriminator log loss {3:.4f}, "
                   "Generator log loss {4:.4f}".format(
