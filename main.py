@@ -26,29 +26,29 @@ def gaussian_noise(ph):
     return np.random.normal(0, 1, size=ph.shape)
 
 
-# def batch_norm(tensor, params={'training': is_train}):
-#     return tf.layers.batch_normalization(inputs=tensor, **params)
-#
-#
-# def lrelu(tensor, alpha=.2):
-#     """Leaky Rectified Linear Unit, alleviating gradient vanishing."""
-#     tensor = batch_norm(tensor)
-#     return tf.maximum(alpha * tensor, tensor)
+def batch_norm(tensor, params={'training': is_train}):
+    return tf.layers.batch_normalization(inputs=tensor, **params)
 
 
-def batch_norm(params):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(func):
-            return tf.layers.batch_normalization(inputs=func, **params)
-        return wrapper
-    return decorator
-
-
-@batch_norm({'training': is_train})
 def lrelu(tensor, alpha=.2):
     """Leaky Rectified Linear Unit, alleviating gradient vanishing."""
+    tensor = batch_norm(tensor)
     return tf.maximum(alpha * tensor, tensor)
+
+#
+# def batch_norm(params):
+#     def decorator(func):
+#         @wraps(func)
+#         def wrapper(func):
+#             return tf.layers.batch_normalization(inputs=func, **params)
+#         return wrapper
+#     return decorator
+#
+#
+# @batch_norm({'training': is_train})
+# def lrelu(tensor, alpha=.2):
+#     """Leaky Rectified Linear Unit, alleviating gradient vanishing."""
+#     return tf.maximum(alpha * tensor, tensor)
 
 
 # construct generative network using transposed convolution layers
