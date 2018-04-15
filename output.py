@@ -5,13 +5,15 @@ produce grid of generated digits through epochs.
 
 Reference : https://github.com/znxlwm/tensorflow-MNIST-GAN-DCGAN/
 """
+
 import io
 import os
 from itertools import product
-
 import imageio
 from PIL import Image
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
@@ -21,7 +23,7 @@ def produce_grid(test_images, num_epoch, path='./results', show=False,
 
     if test_images.shape[0] < grid_size**2:
         raise ValueError(
-                "not enough samples generated, minimum {0}.".format(grid_size))
+            "not enough samples generated, minimum {0}.".format(grid_size))
 
     fig, ax = plt.subplots(grid_size, grid_size, figsize=(5, 5))
     for i, j in product(range(grid_size), range(grid_size)):
