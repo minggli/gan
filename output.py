@@ -1,20 +1,22 @@
 """
-logging
+output
 
 produce grid of generated digits through epochs.
 
 Reference : https://github.com/znxlwm/tensorflow-MNIST-GAN-DCGAN/
 """
+import io
 import os
 from itertools import product
 
 import imageio
+from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-def produce_grid(test_images, num_epoch, path, show=False, save=False,
-                 grid_size=5):
+def produce_grid(test_images, num_epoch, path='./results', show=False,
+                 save=False, grid_size=5):
     """produce squared grid"""
 
     if test_images.shape[0] < grid_size**2:
@@ -30,19 +32,28 @@ def produce_grid(test_images, num_epoch, path, show=False, save=False,
         i = k // grid_size
         j = k % grid_size
         ax[i, j].cla()
-        ax[i, j].imshow(np.reshape(test_images[k], (64, 64)), cmap='gray')
+        test_image = np.reshape(test_images[k], (64, 64)) * .5 + .5
+        test_image *= 255
+        ax[i, j].imshow(test_image, cmap='gray')
 
     label = 'Epoch {0}'.format(num_epoch)
     fig.text(0.5, 0.04, label, ha='center')
 
     if save:
-        plt.savefig(path)
+        plt.savefig(os.path.join(path, 'epoch_{0}.png'.format(num_epoch)))
+        plt.close()
     elif show:
         plt.show()
     else:
         plt.close()
 
-    return plt
+    with io.BytesIO() as buf:
+        fig.canvas.print_png(buf)
+        size = fig.canvas.get_width_height()
+        img = Image.open(buf)
+        grayscale_img = img.convert('L')
+
+    return np.fromstring(grayscale_img.tobytes(), np.uint8).reshape(size)
 
 
 def produce_gif(images, path):
