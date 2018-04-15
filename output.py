@@ -60,4 +60,4 @@ def produce_grid(test_images, num_epoch, path='./results', show=False,
 
 def produce_gif(images, path):
     path = os.path.join(path, './generation_animation.gif')
-    imageio.mimsave(path, images, fps=5)
+    imageio.mimsave(path, images, fps=3)
