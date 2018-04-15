@@ -10,7 +10,7 @@ import tensorflow as tf
 from config import NNConfig
 from pipeline import iter, mnist_batch_iter
 from helpers import weight_variable, bias_variable
-
+from output import produce_grid, produce_gif
 
 BATCH_SIZE, EPOCH, LR = NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA
 
@@ -193,6 +193,9 @@ init_op = tf.global_variables_initializer()
 
 sess.run(init_op)
 
+grids_through_epochs = list()
+constant = gaussian_noise()
+
 for epoch in range(1, EPOCH + 1):
     step = 0
     sess.run(mnist_batch_iter.initializer)
@@ -215,3 +218,8 @@ for epoch in range(1, EPOCH + 1):
         except tf.errors.OutOfRangeError:
             print("Epoch {0} has finished.".format(epoch))
             break
+
+    test_images = sess.run(g_o, feed_dict={g_x: constant})
+    grids_through_epochs.append(produce_grid(test_images, epoch))
+
+produce_gif(grids_through_epochs, path='./results')
