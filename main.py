@@ -20,7 +20,7 @@ d_real_x = tf.placeholder(shape=[None, 64, 64, 1], dtype=tf.float32)
 g_x = tf.placeholder(shape=[BATCH_SIZE, 1, 1, 100], dtype=tf.float32)
 
 
-def gaussian_noise(ph):
+def gaussian_noise(ph=g_x):
     return np.random.normal(0, 1, size=ph.shape)
 
 
@@ -202,11 +202,11 @@ for epoch in range(1, EPOCH + 1):
             images = sess.run(iter, feed_dict={is_train: True})
             _, d_loss_score = sess.run(fetches=[d_train_step, d_loss],
                                        feed_dict={d_real_x: images,
-                                                  g_x: gaussian_noise(g_x),
+                                                  g_x: gaussian_noise(),
                                                   is_train: True})
             _, g_loss_score = sess.run(fetches=[g_train_step, g_loss],
                                        feed_dict={d_real_x: images,
-                                                  g_x: gaussian_noise(g_x),
+                                                  g_x: gaussian_noise(),
                                                   is_train: True})
             print("Epoch {0} of {1}, step {2}, "
                   "Discriminator log loss {3:.4f}, "
