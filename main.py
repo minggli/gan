@@ -7,8 +7,6 @@ data.
 import numpy as np
 import tensorflow as tf
 
-from functools import wraps
-
 from config import NNConfig
 from pipeline import iter, mnist_batch_iter
 from helpers import weight_variable, bias_variable
@@ -34,21 +32,6 @@ def lrelu(tensor, alpha=.2):
     """Leaky Rectified Linear Unit, alleviating gradient vanishing."""
     tensor = batch_norm(tensor)
     return tf.maximum(alpha * tensor, tensor)
-
-#
-# def batch_norm(params):
-#     def decorator(func):
-#         @wraps(func)
-#         def wrapper(func):
-#             return tf.layers.batch_normalization(inputs=func, **params)
-#         return wrapper
-#     return decorator
-#
-#
-# @batch_norm({'training': is_train})
-# def lrelu(tensor, alpha=.2):
-#     """Leaky Rectified Linear Unit, alleviating gradient vanishing."""
-#     return tf.maximum(alpha * tensor, tensor)
 
 
 # construct generative network using transposed convolution layers
