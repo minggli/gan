@@ -220,6 +220,6 @@ for epoch in range(1, EPOCH + 1):
             break
 
     test_images = sess.run(g_o, feed_dict={g_x: constant})
-    grids_through_epochs.append(produce_grid(test_images, epoch))
+    grids_through_epochs.append(produce_grid(test_images, epoch, save=True))
 
 produce_gif(grids_through_epochs, path='./results')
