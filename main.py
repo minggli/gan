@@ -4,12 +4,11 @@
 Simple Deep Convolutional Generative Adversial Networks (DCGANs) with MNIST
 data.
 """
-import numpy as np
 import tensorflow as tf
 
 from config import NNConfig
 from pipeline import iter, mnist_batch_iter
-from helpers import weight_variable, bias_variable
+from helpers import weight_variable, bias_variable, gaussian_noise, lrelu
 from output import produce_grid, produce_gif
 
 BATCH_SIZE, EPOCH, LR = NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA
@@ -18,20 +17,6 @@ BATCH_SIZE, EPOCH, LR = NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA
 is_train = tf.placeholder_with_default(input=False, shape=[], name='is_train')
 d_real_x = tf.placeholder(shape=[None, 64, 64, 1], dtype=tf.float32)
 g_x = tf.placeholder(shape=[BATCH_SIZE, 1, 1, 100], dtype=tf.float32)
-
-
-def gaussian_noise(ph=g_x):
-    return np.random.normal(0, 1, size=ph.shape)
-
-
-def batch_norm(tensor, params={'training': is_train}):
-    return tf.layers.batch_normalization(inputs=tensor, **params)
-
-
-def lrelu(tensor, alpha=.2):
-    """Leaky Rectified Linear Unit, alleviating gradient vanishing."""
-    tensor = batch_norm(tensor)
-    return tf.maximum(alpha * tensor, tensor)
 
 
 # construct generative network using transposed convolution layers
@@ -194,7 +179,7 @@ init_op = tf.global_variables_initializer()
 sess.run(init_op)
 
 grids_through_epochs = list()
-constant = gaussian_noise()
+constant = gaussian_noise(g_x)
 
 for epoch in range(1, EPOCH + 1):
     step = 0
@@ -205,11 +190,11 @@ for epoch in range(1, EPOCH + 1):
             images = sess.run(iter, feed_dict={is_train: True})
             _, d_loss_score = sess.run(fetches=[d_train_step, d_loss],
                                        feed_dict={d_real_x: images,
-                                                  g_x: gaussian_noise(),
+                                                  g_x: gaussian_noise(g_x),
                                                   is_train: True})
             _, g_loss_score = sess.run(fetches=[g_train_step, g_loss],
                                        feed_dict={d_real_x: images,
-                                                  g_x: gaussian_noise(),
+                                                  g_x: gaussian_noise(g_x),
                                                   is_train: True})
             print("Epoch {0} of {1}, step {2}, "
                   "Discriminator log loss {3:.4f}, "
