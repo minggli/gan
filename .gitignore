@@ -12,6 +12,7 @@
 *.tif
 *.7z
 *.tar
+*.png
 
 *.gz
 
@@ -23,11 +24,13 @@ build
 *.egg-info
 _mailinglist
 .tox
+MNIST_data/
 tensorflow/
+models/
+
 .cache/
 .idea/
-mnist_data/
-trained_models/
+
 
 # Coverage reports
 htmlcov
