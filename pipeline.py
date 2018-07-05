@@ -3,7 +3,7 @@ import tensorflow as tf
 from models.official.mnist.dataset import train
 from config import NNConfig
 
-__all__ = ['iter', 'mnist_batch_iter']
+__all__ = ['feed', 'mnist_batch_iter']
 
 BATCH_SIZE = NNConfig.BATCH_SIZE
 EPOCH = NNConfig.EPOCH
@@ -15,4 +15,4 @@ mnist_images = mnist_images.map(lambda x: (x - 0.5) / 0.5)
 
 mnist_batch = mnist_images.shuffle(1000).batch(BATCH_SIZE)
 mnist_batch_iter = mnist_batch.make_initializable_iterator()
-iter = mnist_batch_iter.get_next()
+feed = mnist_batch_iter.get_next()

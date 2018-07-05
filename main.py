@@ -7,7 +7,7 @@ data.
 import tensorflow as tf
 
 from config import NNConfig
-from pipeline import iter, mnist_batch_iter
+from pipeline import feed, mnist_batch_iter
 from helpers import weight_variable, bias_variable, gaussian_noise, lrelu
 from output import produce_grid, produce_gif
 
@@ -187,7 +187,7 @@ for epoch in range(1, EPOCH + 1):
     while True:
         step += 1
         try:
-            images = sess.run(iter, feed_dict={is_train: True})
+            images = sess.run(feed, feed_dict={is_train: True})
             _, d_loss_score = sess.run(fetches=[d_train_step, d_loss],
                                        feed_dict={d_real_x: images,
                                                   g_x: gaussian_noise(g_x),
