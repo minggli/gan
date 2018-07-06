@@ -23,7 +23,6 @@ class _BaseNN(object):
     def gaussian_noise(ph):
         return np.random.normal(0, 1, size=ph.shape)
 
-    @staticmethod
     def σ(self, func, input_tensor, bn=True, **kwargs):
         """non-linearity activation function."""
         if bn:
@@ -44,7 +43,7 @@ class _BaseNN(object):
             raise TypeError('unknown activation found.')
 
     @staticmethod
-    def _batch_normalize(self, input_tensor, **kwargs):
+    def _batch_normalize(input_tensor, **kwargs):
         """batch normalization stablizes input, tracking first and second
         central moments of distribution p(x = i).
 
@@ -53,10 +52,9 @@ class _BaseNN(object):
         try:
             is_train = tf.get_default_graph().get_tensor_by_name('is_train:0')
         except KeyError:
-            with tf.get_default_graph():
-                is_train = tf.placeholder_with_default(input=False,
-                                                       shape=[],
-                                                       name='is_train')
+            is_train = tf.placeholder_with_default(input=False,
+                                                   shape=[],
+                                                   name='is_train')
         return tf.layers.batch_normalization(inputs=input_tensor,
                                              training=is_train,
                                              **kwargs)
@@ -73,7 +71,7 @@ class Discriminator(_BaseNN):
         self.name = name or self.__class__.__name__
 
     def lrelu(self, input_tensor, bn=True):
-        return partial(self.σ, 'lrelu', input_tensor, bn=bn, alpha=.2)
+        return self.σ('lrelu', input_tensor, bn=bn, alpha=.2)
 
     def conv_layer(self, input_tensor, hyperparams, name, **kwargs):
         shape_w, shape_b = hyperparams
@@ -110,7 +108,7 @@ class Generator(_BaseNN):
         self.name = name or self.__class__.__name__
 
     def relu(self, input_tensor, bn=True):
-        return partial(self.σ, 'relu', input_tensor, bn=bn)
+        return self.σ('relu', input_tensor, bn=bn)
 
     def deconv_layer(self, input_tensor, hyperparams, o_shape, name, **kwargs):
         shape_w, shape_b = hyperparams
