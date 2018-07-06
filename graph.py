@@ -92,14 +92,10 @@ class Discriminator(_BaseNN):
     def build(self):
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
             i = self._x
-            for name, params in zip(self.layers[:-1], self.hyperparams[:-1]):
+            for name, params in zip(self.layers, self.hyperparams):
                 i = self.conv_layer(i, params, name)
-
-            logits = self.conv_layer(i, [[4, 4, 1024, 1], [1]], 'logits',
-                                     strides=[1, 1, 1, 1], padding='VALID')
-            o = self.σ('sigmoid', logits, bn=False)
-
-        return logits, o
+            o = self.σ('sigmoid', i, bn=False)
+        return i, o
 
 
 class Generator(_BaseNN):
@@ -133,15 +129,10 @@ class Generator(_BaseNN):
 
     def build(self):
         with tf.variable_scope(self.name, reuse=False):
-            i = self.deconv_layer(self._z,
-                                  self.hyperparams[0],
-                                  self.layers[0],
-                                  self.output_shape[0],
-                                  strides=[1, 1, 1, 1],
-                                  padding='VALID')
-            for name, params, o_shape in zip(self.layers[1:],
-                                             self.hyperparams[1:],
-                                             self.output_shape[1:]):
+            i = self._z
+            for name, params, o_shape in zip(self.layers,
+                                             self.hyperparams,
+                                             self.output_shape):
                 i = self.conv_layer(i, params, name, o_shape)
             o = self.σ('tanh', i, bn=False)
         return i, o
