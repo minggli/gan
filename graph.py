@@ -92,10 +92,9 @@ class Discriminator(_BaseNN):
     def build(self):
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
             i = self._x
-            for name, params in zip(self.layers, self.hyperparams):
+            for name, params in zip(self.layers[:-1], self.hyperparams[:-1]):
                 i = self.conv_layer(i, params, name)
 
-            # logits
             logits = self.conv_layer(i, [[4, 4, 1024, 1], [1]], 'logits',
                                      strides=[1, 1, 1, 1], padding='VALID')
             o = self.σ('sigmoid', logits, bn=False)
@@ -103,136 +102,46 @@ class Discriminator(_BaseNN):
         return logits, o
 
 
+class Generator(_BaseNN):
+    """Deep Convolutional structure according to Radford et al. 2015
+    removed pooling and densely connected layers.
+    """
+    def __init__(self, z, layers, hyperparams, output_shape, name=None):
+        self._z = z
+        self.layers = layers
+        self.hyperparams = hyperparams
+        self.o_shape = output_shape
+        self.name = name or self.__class__.__name__
 
-# there is only one single discriminative network with variables reused
-with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
-    # discriminative network for fake (generated) images
-    with tf.variable_scope('conv_1'):
-        W = weight_variable([4, 4, 1, 128])
-        b = bias_variable([128])
-        d_fake_conv_1 = lrelu(tf.nn.conv2d(input=g_o,
-                                           # takes in output of generator
-                                           filter=W,
-                                           strides=[1, 2, 2, 1],
-                                           padding='SAME') + b)
-    with tf.variable_scope('conv_2'):
-        W = weight_variable([4, 4, 128, 256])
-        b = bias_variable([256])
-        d_fake_conv_2 = lrelu(tf.nn.conv2d(input=d_fake_conv_1,
-                                           filter=W,
-                                           strides=[1, 2, 2, 1],
-                                           padding='SAME') + b)
-    with tf.variable_scope('conv_3'):
-        W = weight_variable([4, 4, 256, 512])
-        b = bias_variable([512])
-        d_fake_conv_3 = lrelu(tf.nn.conv2d(input=d_fake_conv_2,
-                                           filter=W,
-                                           strides=[1, 2, 2, 1],
-                                           padding='SAME') + b)
-    with tf.variable_scope('conv_4'):
-        W = weight_variable([4, 4, 512, 1024])
-        b = bias_variable([1024])
-        d_fake_conv_4 = lrelu(tf.nn.conv2d(input=d_fake_conv_3,
-                                           filter=W,
-                                           strides=[1, 2, 2, 1],
-                                           padding='SAME') + b)
-    with tf.variable_scope('logits'):
-        W = weight_variable([4, 4, 1024, 1])
-        b = bias_variable([1])
-        d_fake_logits = tf.nn.conv2d(input=d_fake_conv_4,
-                                     filter=W,
-                                     strides=[1, 1, 1, 1],
-                                     padding='VALID') + b
-    d_fake_o = tf.nn.sigmoid(d_fake_logits)
+    def relu(self, input_tensor, bn=True):
+        return partial(self.σ, 'relu', input_tensor, bn=bn)
 
-# there is only one single discriminative network with variables reused
-with tf.variable_scope('discriminator', reuse=tf.AUTO_REUSE):
-    # discriminative network for real images
-    with tf.variable_scope('conv_1'):
-        W = weight_variable([4, 4, 1, 128])
-        b = bias_variable([128])
-        d_real_conv_1 = lrelu(tf.nn.conv2d(input=d_real_x,
-                                           filter=W,
-                                           strides=[1, 2, 2, 1],
-                                           padding='SAME') + b)
-    with tf.variable_scope('conv_2'):
-        W = weight_variable([4, 4, 128, 256])
-        b = bias_variable([256])
-        d_real_conv_2 = lrelu(tf.nn.conv2d(input=d_real_conv_1,
-                                           filter=W,
-                                           strides=[1, 2, 2, 1],
-                                           padding='SAME') + b)
-    with tf.variable_scope('conv_3'):
-        W = weight_variable([4, 4, 256, 512])
-        b = bias_variable([512])
-        d_real_conv_3 = lrelu(tf.nn.conv2d(input=d_real_conv_2,
-                                           filter=W,
-                                           strides=[1, 2, 2, 1],
-                                           padding='SAME') + b)
-    with tf.variable_scope('conv_4'):
-        W = weight_variable([4, 4, 512, 1024])
-        b = bias_variable([1024])
-        d_real_conv_4 = lrelu(tf.nn.conv2d(input=d_real_conv_3,
-                                           filter=W,
-                                           strides=[1, 2, 2, 1],
-                                           padding='SAME') + b)
-    with tf.variable_scope('logits'):
-        W = weight_variable([4, 4, 1024, 1])
-        b = bias_variable([1])
-        d_real_logits = tf.nn.conv2d(input=d_real_conv_4,
-                                     filter=W,
-                                     strides=[1, 1, 1, 1],
-                                     padding='VALID') + b
-    d_real_o = tf.nn.sigmoid(d_real_logits)
+    def deconv_layer(self, input_tensor, hyperparams, o_shape, name, **kwargs):
+        shape_w, shape_b = hyperparams
+        strides = kwargs.get('strides', [1, 2, 2, 1])
+        padding = kwargs.get('padding', 'SAME')
+        with tf.variable_scope(name):
+            w = self.weight_variable(shape_w)
+            b = self.bias_variable(shape_b)
+            matmul = tf.nn.conv2d_transpose(input=input_tensor,
+                                            filter=w,
+                                            output_shape=o_shape,
+                                            strides=strides,
+                                            padding=padding)
+            deconv_layer = self.relu(matmul + b)
+        return deconv_layer
 
-
-# construct generative network using transposed convolution layers
-# (also known as deconvolution) generate images from white noise signal.
-with tf.variable_scope('generator', reuse=False):
-    # generative network
-    with tf.variable_scope('deconv_1'):
-        W = weight_variable([4, 4, 1024, 100])
-        b = bias_variable([1024])
-        g_conv_1 = lrelu(tf.nn.conv2d_transpose(
-                            g_x,
-                            filter=W,
-                            output_shape=[BATCH_SIZE, 4, 4, 1024],
-                            strides=[1, 1, 1, 1],
-                            padding='VALID') + b)
-    with tf.variable_scope('deconv_2'):
-        W = weight_variable([4, 4, 512, 1024])
-        b = bias_variable([512])
-        g_conv_2 = lrelu(tf.nn.conv2d_transpose(
-                            g_conv_1,
-                            filter=W,
-                            output_shape=[BATCH_SIZE, 8, 8, 512],
-                            strides=[1, 2, 2, 1],
-                            padding='SAME') + b)
-    with tf.variable_scope('deconv_3'):
-        W = weight_variable([4, 4, 256, 512])
-        b = bias_variable([256])
-        g_conv_3 = lrelu(tf.nn.conv2d_transpose(
-                            g_conv_2,
-                            filter=W,
-                            output_shape=[BATCH_SIZE, 16, 16, 256],
-                            strides=[1, 2, 2, 1],
-                            padding='SAME') + b)
-    with tf.variable_scope('deconv_4'):
-        W = weight_variable([4, 4, 128, 256])
-        b = bias_variable([128])
-        g_conv_4 = lrelu(tf.nn.conv2d_transpose(
-                            g_conv_3,
-                            filter=W,
-                            output_shape=[BATCH_SIZE, 32, 32, 128],
-                            strides=[1, 2, 2, 1],
-                            padding='SAME') + b)
-    with tf.variable_scope('logits'):
-        W = weight_variable([4, 4, 1, 128])
-        b = bias_variable([1])
-        g_logits = tf.nn.conv2d_transpose(
-                            g_conv_4,
-                            filter=W,
-                            output_shape=[BATCH_SIZE, 64, 64, 1],
-                            strides=[1, 2, 2, 1],
-                            padding='SAME') + b
-    g_o = tf.nn.tanh(g_logits)
+    def build(self):
+        with tf.variable_scope(self.name, reuse=False):
+            i = self.deconv_layer(self._z,
+                                  self.hyperparams[0],
+                                  self.layers[0],
+                                  self.output_shape[0],
+                                  strides=[1, 1, 1, 1],
+                                  padding='VALID')
+            for name, params, o_shape in zip(self.layers[1:],
+                                             self.hyperparams[1:],
+                                             self.output_shape[1:]):
+                i = self.conv_layer(i, params, name, o_shape)
+            o = self.σ('tanh', i, bn=False)
+        return i, o
