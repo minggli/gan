@@ -7,9 +7,9 @@ GAN was introduced by [Goodfellow et al 2014][1]. It was observed in subsequent 
 
 Gaussian noise term applied to both D(x) and G(z) and Wasserstein distance are argued in [Arjovsky and Bottou 2017][2] to soften measurement of similarity and Wasserstein GAN is formally discussed in [Arjovsky et al 2017][3].
 
-[Gulrajani et al 2017][4] then further improves the continuity with use of Gradient Penalty (GP)
+[Gulrajani et al 2017][4] further improves the continuity with use of Gradient Penalty (GP)
 
-This repository is a toy project by Ming Li to explore the maturity of WGAN-GP for wider application.
+This repository is a toy project to explore the maturity of WGAN-GP and hopefully motivate for wider application.
 
 [1]: https://papers.nips.cc/paper/5423-generative-adversarial-nets.pdf  
 [2]: https://arxiv.org/abs/1701.04862  
