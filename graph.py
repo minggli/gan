@@ -4,8 +4,6 @@
 import numpy as np
 import tensorflow as tf
 
-from functools import partial
-
 
 class _BaseNN(object):
 
@@ -32,7 +30,7 @@ class _BaseNN(object):
             alpha = kwargs.get('alpha', .2)
             return tf.maximum(alpha * input_tensor, input_tensor)
         elif func == 'relu':
-            return tf.maximum(0, input_tensor)
+            return tf.maximum(0., input_tensor)
         elif func == 'sigmoid':
             return tf.nn.sigmoid(input_tensor)
         elif func == 'tanh':
@@ -64,19 +62,16 @@ class Discriminator(_BaseNN):
     """Deep Convolutional structure according to Radford et al. 2015
     removed pooling and densely connected layers.
     """
-    def __init__(self, x, layers, hyperparams, name=None):
+    def __init__(self, x, hyperparams, name=None):
         self._x = x
-        self.layers = layers
         self.hyperparams = hyperparams
         self.name = name or self.__class__.__name__
 
     def lrelu(self, input_tensor, bn=True):
         return self.σ('lrelu', input_tensor, bn=bn, alpha=.2)
 
-    def conv_layer(self, input_tensor, hyperparams, name, **kwargs):
-        shape_w, shape_b = hyperparams
-        strides = kwargs.get('strides', [1, 2, 2, 1])
-        padding = kwargs.get('padding', 'SAME')
+    def conv_layer(self, input_tensor, hyperparams):
+        name, (shape_w, shape_b), strides, padding = hyperparams
         with tf.variable_scope(name):
             w = self.weight_variable(shape_w)
             b = self.bias_variable(shape_b)
@@ -90,8 +85,8 @@ class Discriminator(_BaseNN):
     def build(self):
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
             i = self._x
-            for name, params in zip(self.layers, self.hyperparams):
-                i = self.conv_layer(i, params, name)
+            for params in self.hyperparams:
+                i = self.conv_layer(i, params)
             o = self.σ('sigmoid', i, bn=False)
         return i, o
 
@@ -100,26 +95,23 @@ class Generator(_BaseNN):
     """Deep Convolutional structure according to Radford et al. 2015
     removed pooling and densely connected layers.
     """
-    def __init__(self, z, layers, hyperparams, output_shape, name=None):
+    def __init__(self, z, hyperparams, name=None):
         self._z = z
-        self.layers = layers
         self.hyperparams = hyperparams
-        self.o_shape = output_shape
         self.name = name or self.__class__.__name__
 
     def relu(self, input_tensor, bn=True):
         return self.σ('relu', input_tensor, bn=bn)
 
-    def deconv_layer(self, input_tensor, hyperparams, o_shape, name, **kwargs):
-        shape_w, shape_b = hyperparams
-        strides = kwargs.get('strides', [1, 2, 2, 1])
-        padding = kwargs.get('padding', 'SAME')
+    def deconv_layer(self, input_tensor, hyperparams):
+        name, (shape_w, shape_b, shape_o), strides, padding = hyperparams
+        print(name, shape_w, shape_b, shape_o, strides, padding)
         with tf.variable_scope(name):
             w = self.weight_variable(shape_w)
             b = self.bias_variable(shape_b)
-            matmul = tf.nn.conv2d_transpose(input=input_tensor,
+            matmul = tf.nn.conv2d_transpose(value=input_tensor,
                                             filter=w,
-                                            output_shape=o_shape,
+                                            output_shape=shape_o,
                                             strides=strides,
                                             padding=padding)
             deconv_layer = self.relu(matmul + b)
@@ -128,9 +120,7 @@ class Generator(_BaseNN):
     def build(self):
         with tf.variable_scope(self.name, reuse=False):
             i = self._z
-            for name, params, o_shape in zip(self.layers,
-                                             self.hyperparams,
-                                             self.output_shape):
-                i = self.conv_layer(i, params, name, o_shape)
+            for params in self.hyperparams:
+                i = self.deconv_layer(i, params)
             o = self.σ('tanh', i, bn=False)
         return i, o
