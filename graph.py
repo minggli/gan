@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # -*- encoding: utf-8 -*-
 
 import numpy as np
@@ -105,7 +104,6 @@ class Generator(_BaseNN):
 
     def deconv_layer(self, input_tensor, hyperparams):
         name, (shape_w, shape_b, shape_o), strides, padding = hyperparams
-        print(name, shape_w, shape_b, shape_o, strides, padding)
         with tf.variable_scope(name):
             w = self.weight_variable(shape_w)
             b = self.bias_variable(shape_b)
