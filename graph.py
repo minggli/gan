@@ -122,3 +122,51 @@ class Generator(_BaseNN):
                 i = self.deconv_layer(i, params)
             o = self.σ('tanh', i, bn=False)
         return i, o
+
+
+class Loss(object):
+    def __init__(self, d_real, d_fake):
+        self.d_real = d_real
+        self.d_fake = d_fake
+        pass
+
+    def goodfellow(self):
+        """
+        Loss as in Goodfellow et al 2014:
+                J(D, G) = 1/2m * sum{log(D(x)) + log(1 - D(G(z)))}
+        There is no prebuild loss for GANs, customized loss as below.
+        Given tensorflow.nn.sigmoid_cross_entropy_with_logits is:
+                J(θ) = - y * log g(z) - (1 - y) * log (1 - g(z))
+                                    where z = θ.T * x, g = sigmoid function
+        when y = 1, we obtain left side of d_loss: log(D(x));
+        when y = 0, we obtain right side of d_loss: log(1 - D(G(z)))
+        D and G are interpreted as probabilities so sigmoid function squashes
+        logits to interval (0, 1).
+        hence:
+            d_loss = 1/2m * sum{log(D(x)) + log(1 - D[G(z)])}
+        """
+        d_left_term = tf.nn.sigmoid_cross_entropy_with_logits(
+                                            logits=self.d_real,
+                                            labels=tf.ones(self.d_real))
+        d_right_term = tf.nn.sigmoid_cross_entropy_with_logits(
+                                            logits=self.d_fake,
+                                            labels=tf.zeros_like(self.d_real))
+        d_loss = .5 * (tf.reduce_mean(d_left_term) +
+                       tf.reduce_mean(d_right_term))
+        g_loss = tf.reduce_mean(d_right_term)
+        return d_loss, g_loss
+
+    def wasserstein(self):
+        """
+        Wasserstein distance as in Arjosky et al 2017.
+                J(D, G) = 1/m * sum {log D(x)} - 1/m * sum {log D(G(z)}
+        """
+        d_left_term = tf.nn.sigmoid_cross_entropy_with_logits(
+                                                logits=self.d_real,
+                                                labels=tf.ones(self.d_real))
+        d_right_term = tf.nn.sigmoid_cross_entropy_with_logits(
+                                                logits=self.d_fake,
+                                                labels=tf.ones(self.d_real))
+        d_loss = tf.reduce_mean(d_left_term) - tf.reduce_mean(d_right_term)
+        g_loss = - tf.reduce_mean(d_right_term)
+        return d_loss, g_loss
