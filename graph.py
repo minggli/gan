@@ -156,7 +156,7 @@ class Loss(object):
 
         return d_loss, g_loss
 
-    def wasserstein(self, g_o=None, lda=10):
+    def wasserstein(self, derivative=None, lda=10):
         """
         Wasserstein distance as in Arjosky et al 2017:
                 J(D, G) = 1/m * sum {log D(x)} - 1/m * sum {log D(G(z)}
@@ -172,9 +172,9 @@ class Loss(object):
                                             labels=tf.ones_like(self.d_fake))
         d_loss = tf.reduce_mean(d_left_term) - tf.reduce_mean(d_right_term)
         g_loss = -tf.reduce_mean(d_right_term)
-        if g_o is not None:
+        if derivative is not None:
+            # add gradient penalty term  as in Gulrajani et al 2017
             # partial derivative of D(r) with respect to r, r = G(z)
-            derivative, = tf.gradients(d_right_term, [g_o], name='penalty')
             norm = tf.nn.l2_normalize(derivative)
             # scaling factor lambda, default 10
             gradient_penalty = lda * tf.reduce_mean(tf.square(norm - 1))
