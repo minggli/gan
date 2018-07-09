@@ -125,10 +125,9 @@ class Generator(_BaseNN):
 
 
 class Loss(object):
-    def __init__(self, d_real, d_fake):
-        self.d_real = d_real
-        self.d_fake = d_fake
-        pass
+    def __init__(self, d_real_logits, d_fake_logits):
+        self.d_real = d_real_logits
+        self.d_fake = d_fake_logits
 
     def goodfellow(self):
         """
@@ -147,38 +146,38 @@ class Loss(object):
         """
         d_left_term = tf.nn.sigmoid_cross_entropy_with_logits(
                                             logits=self.d_real,
-                                            labels=tf.ones(self.d_real))
+                                            labels=tf.ones_like(self.d_real))
         d_right_term = tf.nn.sigmoid_cross_entropy_with_logits(
                                             logits=self.d_fake,
                                             labels=tf.zeros_like(self.d_fake))
         d_loss = .5 * (tf.reduce_mean(d_left_term) +
                        tf.reduce_mean(d_right_term))
         g_loss = tf.reduce_mean(d_right_term)
+
         return d_loss, g_loss
 
-    def wasserstein(self):
+    def wasserstein(self, g_o=None, lda=10):
         """
         Wasserstein distance as in Arjosky et al 2017:
                 J(D, G) = 1/m * sum {log D(x)} - 1/m * sum {log D(G(z)}
-        """
-        d_left_term = tf.nn.sigmoid_cross_entropy_with_logits(
-                                                logits=self.d_real,
-                                                labels=tf.ones(self.d_real))
-        d_right_term = tf.nn.sigmoid_cross_entropy_with_logits(
-                                                logits=self.d_fake,
-                                                labels=tf.ones(self.d_fake))
-        d_loss = tf.reduce_mean(d_left_term) - tf.reduce_mean(d_right_term)
-        g_loss = - tf.reduce_mean(d_right_term)
-
-        return d_loss, g_loss
-
-    def gp(self, g_o, lda=10):
-        """
         Gradient Penalty as in Gulrajani et al 2017:
                 J(D, G) + ƛ * 1/m * {l2_norm[d D(r) / d r] - 1}**2
             where r = G(z)
         """
-        # partial derivative of D(r) with respect to r, r = G(z)
-        derivative, = tf.gradient(self.d_fake, [g_o], name='penalty')
-        norm = tf.nn.l2_normalize(derivative)
-        return lda * tf.reduce_mean(tf.square(norm - 1))
+        d_left_term = tf.nn.sigmoid_cross_entropy_with_logits(
+                                            logits=self.d_real,
+                                            labels=tf.ones_like(self.d_real))
+        d_right_term = tf.nn.sigmoid_cross_entropy_with_logits(
+                                            logits=self.d_fake,
+                                            labels=tf.ones_like(self.d_fake))
+        d_loss = tf.reduce_mean(d_left_term) - tf.reduce_mean(d_right_term)
+        g_loss = -tf.reduce_mean(d_right_term)
+        if g_o is not None:
+            # partial derivative of D(r) with respect to r, r = G(z)
+            derivative, = tf.gradients(d_right_term, [g_o], name='penalty')
+            norm = tf.nn.l2_normalize(derivative)
+            # scaling factor lambda, default 10
+            gradient_penalty = lda * tf.reduce_mean(tf.square(norm - 1))
+            d_loss += gradient_penalty
+
+        return d_loss, g_loss
