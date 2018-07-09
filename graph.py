@@ -69,7 +69,7 @@ class Discriminator(_BaseNN):
     def lrelu(self, input_tensor, bn=True):
         return self.σ('lrelu', input_tensor, bn=bn, alpha=.2)
 
-    def conv_layer(self, input_tensor, hyperparams):
+    def conv_layer(self, input_tensor, hyperparams, **kwargs):
         name, (shape_w, shape_b), strides, padding = hyperparams
         with tf.variable_scope(name):
             w = self.weight_variable(shape_w)
@@ -78,14 +78,14 @@ class Discriminator(_BaseNN):
                                   filter=w,
                                   strides=strides,
                                   padding=padding)
-            conv_layer = self.lrelu(matmul + b)
+            conv_layer = self.lrelu(matmul + b, **kwargs)
         return conv_layer
 
-    def build(self):
+    def build(self, **kwargs):
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
             i = self._x
             for params in self.hyperparams:
-                i = self.conv_layer(i, params)
+                i = self.conv_layer(i, params, **kwargs)
             o = self.σ('sigmoid', i, bn=False)
         return i, o
 
