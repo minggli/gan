@@ -137,8 +137,8 @@ class Loss(object):
         Given tensorflow.nn.sigmoid_cross_entropy_with_logits is:
                 J(θ) = - y * log g(z) - (1 - y) * log (1 - g(z))
                                     where z = θ.T * x, g = sigmoid function
-        when y = 1, we obtain left side of d_loss: log(D(x));
-        when y = 0, we obtain right side of d_loss: log(1 - D(G(z)))
+        when y = 1, we obtain left side of d_loss: - log(D(x));
+        when y = 0, we obtain right side of d_loss: - log(1 - D(G(z)))
         D and G are interpreted as probabilities so sigmoid function squashes
         logits to interval (0, 1).
         hence:
@@ -150,10 +150,8 @@ class Loss(object):
         d_right_term = tf.nn.sigmoid_cross_entropy_with_logits(
                                             logits=self.d_fake,
                                             labels=tf.zeros_like(self.d_fake))
-        d_loss = .5 * (tf.reduce_mean(d_left_term) +
-                       tf.reduce_mean(d_right_term))
-        g_loss = tf.reduce_mean(d_right_term)
-
+        d_loss = - tf.reduce_mean(d_left_term + d_right_term) / 2
+        g_loss = - tf.reduce_mean(d_right_term)
         return d_loss, g_loss
 
     def wasserstein(self, derivative=None, lda=10):
@@ -170,14 +168,10 @@ class Loss(object):
         d_right_term = tf.nn.sigmoid_cross_entropy_with_logits(
                                             logits=self.d_fake,
                                             labels=tf.ones_like(self.d_fake))
-        d_loss = tf.reduce_mean(d_left_term) - tf.reduce_mean(d_right_term)
-        g_loss = -tf.reduce_mean(d_right_term)
+        d_loss = - tf.reduce_mean(d_left_term - d_right_term)
+        g_loss = tf.reduce_mean(d_right_term)
         if derivative is not None:
-            # add gradient penalty term  as in Gulrajani et al 2017
-            # partial derivative of D(r) with respect to r, r = G(z)
             norm = tf.nn.l2_normalize(derivative)
-            # scaling factor lambda, default 10
             gradient_penalty = lda * tf.reduce_mean(tf.square(norm - 1))
             d_loss += gradient_penalty
-
         return d_loss, g_loss
