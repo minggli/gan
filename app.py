@@ -7,7 +7,7 @@ from output import produce_grid, produce_gif
 N_Discriminator = 3
 BATCH_SIZE, EPOCH, LR = NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA
 
-# d_real_x = tf.placeholder(shape=[None, 64, 64, 1], dtype=tf.float32)
+d_real_x = tf.placeholder(shape=[None, 64, 64, 1], dtype=tf.float32)
 g_x = tf.placeholder(shape=[BATCH_SIZE, 1, 1, 100], dtype=tf.float32)
 is_train = tf.placeholder_with_default(input=True, shape=[], name='is_train')
 
@@ -33,30 +33,30 @@ g_params = [
 ]
 
 d_real_x = feed
-d_real = Discriminator(d_real_x, d_params)
-d_real_logits, d_real_o = d_real.build(bn=False)
+d_real_logits, d_real_o = \
+    Discriminator(d_real_x, d_params, name='Critic').build(bn=False)
 
 g = Generator(g_x, g_params)
 g_logits, g_o = g.build()
-d_fake = Discriminator(g_o, d_params)
-d_fake_logits, d_fake_o = d_fake.build(bn=False)
+d_fake_logits, d_fake_o = \
+    Discriminator(g_o, d_params, name='Critic').build(bn=False)
 
 # uniform noise for penalty terms
 ε = tf.random_uniform([BATCH_SIZE, 64, 64, 1], name='epsilon')
 x_hat = ε * d_real_x - (1 - ε) * g_o
-d_penalty = Discriminator(x_hat, d_params)
-_, d_penalty_o = d_penalty.build(bn=False)
-derivative, = tf.gradients(d_penalty_o, [x_hat], name='penalty')
+_, d_penalty_o = \
+    Discriminator(x_hat, d_params, name='Critic').build(bn=False)
+derivative, = tf.gradients(d_penalty_o, [x_hat])
 
 # Wasserstein distance with gradient penalty
 d_loss, g_loss = Loss(d_real_logits, d_fake_logits).wasserstein(derivative)
 
 # Mini-batch SGD optimisers for J for both Networks
 with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
-    d_train_step = tf.train.AdamOptimizer(LR).minimize(
+    d_train_step = tf.train.AdamOptimizer(LR, beta1=0, beta2=0.9).minimize(
                             d_loss,
-                            var_list=tf.trainable_variables('Discriminator'))
-    g_train_step = tf.train.AdamOptimizer(LR).minimize(
+                            var_list=tf.trainable_variables('Critic'))
+    g_train_step = tf.train.AdamOptimizer(LR, beta1=0, beta2=0.9).minimize(
                             g_loss,
                             var_list=tf.trainable_variables('Generator'))
 
@@ -64,6 +64,9 @@ sess = tf.Session()
 init_op = tf.global_variables_initializer()
 
 sess.run(init_op)
+
+for var in tf.trainable_variables():
+    print(var)
 
 grids_through_epochs = list()
 constant = g.gaussian_noise(g_x)
@@ -75,6 +78,7 @@ for epoch in range(1, EPOCH + 1):
         try:
             for i in range(N_Discriminator):
                 step += 1
+                images = sess.run(feed)
                 _, d_loss_score = sess.run(
                     fetches=[d_train_step, d_loss],
                     feed_dict={g_x: g.gaussian_noise(g_x)})
@@ -85,9 +89,8 @@ for epoch in range(1, EPOCH + 1):
             _, g_loss_score = sess.run(
                     fetches=[g_train_step, g_loss],
                     feed_dict={g_x: g.gaussian_noise(g_x)})
-            print("Epoch {0} of {1}, step {2}, "
-                  "Discriminator log loss {3:.4f}, "
-                  "Generator log loss {4:.4f}".format(
+            print("Epoch {0} of {1}, step {2}, Discriminator log loss {3:.4f},"
+                  " Generator log loss {4:.4f}".format(
                     epoch, EPOCH, step, d_loss_score, g_loss_score))
         except tf.errors.OutOfRangeError:
             print("Epoch {0} has finished.".format(epoch))
