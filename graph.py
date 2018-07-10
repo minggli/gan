@@ -144,34 +144,28 @@ class Loss(object):
         hence:
             d_loss = 1/2m * sum{log(D(x)) + log(1 - D[G(z)])}
         """
-        d_left_term = tf.nn.sigmoid_cross_entropy_with_logits(
+        d_left_term = - tf.nn.sigmoid_cross_entropy_with_logits(
                                             logits=self.d_real,
                                             labels=tf.ones_like(self.d_real))
-        d_right_term = tf.nn.sigmoid_cross_entropy_with_logits(
+        d_right_term = - tf.nn.sigmoid_cross_entropy_with_logits(
                                             logits=self.d_fake,
                                             labels=tf.zeros_like(self.d_fake))
-        d_loss = - tf.reduce_mean(d_left_term + d_right_term) / 2
-        g_loss = - tf.reduce_mean(d_right_term)
+        d_loss = tf.reduce_mean(d_left_term + d_right_term) / 2.
+        g_loss = tf.reduce_mean(d_right_term)
         return d_loss, g_loss
 
     def wasserstein(self, derivative=None, lda=10):
         """
         Wasserstein distance as in Arjosky et al 2017:
-                J(D, G) = 1/m * sum {log D(x)} - 1/m * sum {log D(G(z)}
+                J(D, G) = 1/m * sum {f(x)} - 1/m * sum {f(G(z))}
         Gradient Penalty as in Gulrajani et al 2017:
-                J(D, G) + ƛ * 1/m * {l2_norm[d D(r) / d r] - 1}**2
-            where r = G(z)
+                J(D, G) + ƛ * 1/m * {l2_norm[d f(r) / d r] - 1}**2
+            where r = G(z), f does not produce interval (0, 1)
         """
-        d_left_term = tf.nn.sigmoid_cross_entropy_with_logits(
-                                            logits=self.d_real,
-                                            labels=tf.ones_like(self.d_real))
-        d_right_term = tf.nn.sigmoid_cross_entropy_with_logits(
-                                            logits=self.d_fake,
-                                            labels=tf.ones_like(self.d_fake))
-        d_loss = - tf.reduce_mean(d_left_term - d_right_term)
-        g_loss = tf.reduce_mean(d_right_term)
+        d_loss = tf.reduce_mean(self.d_real - self.d_fake)
+        g_loss = - tf.reduce_mean(self.d_fake)
         if derivative is not None:
-            norm = tf.nn.l2_normalize(derivative)
+            norm = tf.nn.l2_normalize(derivative, axis=1)
             gradient_penalty = lda * tf.reduce_mean(tf.square(norm - 1))
             d_loss += gradient_penalty
         return d_loss, g_loss
