@@ -6,7 +6,7 @@ from pipeline import feed, mnist_batch_iter
 from output import produce_grid, produce_gif
 
 
-N_Critic = 1
+N_Critic = 3
 BATCH_SIZE, EPOCH, LR = NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA
 
 d_real_x = tf.placeholder(shape=[None, 64, 64, 1], dtype=tf.float32)
