@@ -69,7 +69,7 @@ class Discriminator(_BaseNN):
     def lrelu(self, input_tensor, bn=True):
         return self.σ('lrelu', input_tensor, bn=bn, alpha=.2)
 
-    def conv_layer(self, input_tensor, hyperparams, **kwargs):
+    def conv_layer(self, input_tensor, hyperparams):
         name, (shape_w, shape_b), strides, padding = hyperparams
         with tf.variable_scope(name):
             w = self.weight_variable(shape_w)
@@ -78,14 +78,14 @@ class Discriminator(_BaseNN):
                                   filter=w,
                                   strides=strides,
                                   padding=padding)
-            conv_layer = self.lrelu(matmul + b, **kwargs)
-        return conv_layer
+        return matmul + b
 
     def build(self, **kwargs):
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
             i = self._x
-            for params in self.hyperparams:
-                i = self.conv_layer(i, params, **kwargs)
+            for params in self.hyperparams[:-1]:
+                i = self.lrelu(self.conv_layer(i, params), **kwargs)
+            i = self.conv_layer(i, self.hyperparams[-1])
             o = self.σ('sigmoid', i, bn=False)
         return i, o
 
@@ -112,14 +112,14 @@ class Generator(_BaseNN):
                                             output_shape=shape_o,
                                             strides=strides,
                                             padding=padding)
-            deconv_layer = self.relu(matmul + b)
-        return deconv_layer
+        return matmul + b
 
     def build(self):
         with tf.variable_scope(self.name, reuse=False):
             i = self._z
-            for params in self.hyperparams:
-                i = self.deconv_layer(i, params)
+            for params in self.hyperparams[:-1]:
+                i = self.relu(self.deconv_layer(i, params))
+            i = self.deconv_layer(i, self.hyperparams[-1])
             o = self.σ('tanh', i, bn=False)
         return i, o
 
@@ -174,7 +174,8 @@ class Loss(object):
         # minimize {- 1/m * sum f(G(z))}
         g_loss = - tf.reduce_mean(self.d_fake)
         if derivative is not None:
-            norm = tf.nn.l2_normalize(derivative, axis=1)
+            norm = tf.sqrt(tf.reduce_sum(tf.square(derivative),
+                                         axis=[1, 2, 3]))
             gradient_penalty = lda * tf.reduce_mean(tf.square(norm - 1.))
             d_loss += gradient_penalty
         return d_loss, g_loss
