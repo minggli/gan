@@ -129,7 +129,7 @@ class Loss(object):
         self.d_real = d_real_logits
         self.d_fake = d_fake_logits
 
-    def goodfellow(self):
+    def goodfellow(self, *args, **kwargs):
         """
         Loss as in Goodfellow et al 2014:
                 J(D, G) = 1/2m * sum{log(D(x)) + log(1 - D(G(z)))}
@@ -144,17 +144,25 @@ class Loss(object):
         hence:
             d_loss = 1/2m * sum{log(D(x)) + log(1 - D[G(z)])}
         """
+        # - log D(x)
         d_left_term = tf.nn.sigmoid_cross_entropy_with_logits(
                                             logits=self.d_real,
                                             labels=tf.ones_like(self.d_real))
+        # - log {1 - D(G(z))}
         d_right_term = tf.nn.sigmoid_cross_entropy_with_logits(
                                             logits=self.d_fake,
                                             labels=tf.zeros_like(self.d_fake))
+        # - 1 / 2m sum{log D(x) + log {1 - D(G(z))}}
         d_loss = tf.reduce_mean(d_left_term + d_right_term) / 2.
-        g_loss = tf.reduce_mean(d_right_term)
+        # - log D(G(z))
+        g_xentropy = tf.nn.sigmoid_cross_entropy_with_logits(
+                                            logits=self.d_fake,
+                                            labels=tf.ones_like(self.d_fake))
+
+        g_loss = tf.reduce_mean(g_xentropy)
         return d_loss, g_loss
 
-    def wasserstein(self, derivative=None, lda=10):
+    def wasserstein(self, derivative=None, lda=10, **kwargs):
         """
         Wasserstein distance as in Arjosky et al 2017:
                 J(D, G) = 1/m * sum {f(x)} - 1/m * sum {f(G(z))}
