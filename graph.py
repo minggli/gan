@@ -144,10 +144,10 @@ class Loss(object):
         hence:
             d_loss = 1/2m * sum{log(D(x)) + log(1 - D[G(z)])}
         """
-        d_left_term = - tf.nn.sigmoid_cross_entropy_with_logits(
+        d_left_term = tf.nn.sigmoid_cross_entropy_with_logits(
                                             logits=self.d_real,
                                             labels=tf.ones_like(self.d_real))
-        d_right_term = - tf.nn.sigmoid_cross_entropy_with_logits(
+        d_right_term = tf.nn.sigmoid_cross_entropy_with_logits(
                                             logits=self.d_fake,
                                             labels=tf.zeros_like(self.d_fake))
         d_loss = tf.reduce_mean(d_left_term + d_right_term) / 2.
