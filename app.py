@@ -6,7 +6,7 @@ from pipeline import feed, mnist_batch_iter
 from output import produce_grid, produce_gif
 
 
-N_Discriminator = 1
+N_Critic = 1
 BATCH_SIZE, EPOCH, LR = NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA
 
 d_real_x = tf.placeholder(shape=[None, 64, 64, 1], dtype=tf.float32)
@@ -36,7 +36,7 @@ g_params = [
 
 # gaussian noise to improve chance of intersection of D and G.
 ε = tf.random_normal([BATCH_SIZE, 64, 64, 1])
-# ε = 0
+ε = 0
 d_real_x = feed
 d_real_logits, d_real_o = Discriminator(d_real_x + ε, d_params).build(bn=False)
 
@@ -46,10 +46,9 @@ d_fake_logits, d_fake_o = Discriminator(g_o + ε, d_params).build(bn=False)
 
 # uniform noise for penalty terms
 ε_penalty = tf.random_uniform([], name='epsilon')
-x_hat = ε_penalty * d_real_x - (1 - ε_penalty) * g_o
-_, d_penalty_o = Discriminator(x_hat, d_params).build(bn=False)
-derivative, = tf.gradients(d_penalty_o, [x_hat])
-derivative = tf.reshape(derivative, [BATCH_SIZE, -1])
+x_hat = (1 - ε_penalty) * d_real_x + ε_penalty * g_o
+d_penalty_logits, _ = Discriminator(x_hat, d_params).build(bn=False)
+derivative, = tf.gradients(d_penalty_logits, [x_hat])
 
 # Wasserstein distance with gradient penalty
 d_loss, g_loss = Loss(d_real_logits, d_fake_logits).wasserstein(derivative)
@@ -78,22 +77,22 @@ for epoch in range(1, EPOCH + 1):
     sess.run(mnist_batch_iter.initializer)
     while True:
         try:
-            step += 1
-            _, g_loss_score = sess.run(fetches=[g_train_step, g_loss],
-                                       feed_dict={g_x: g.gaussian_noise(g_x)})
-            print("Epoch {0} of {1}, step {2}"
-                  " Generator log loss {3:.4f}".format(
-                    epoch, EPOCH, step, g_loss_score))
-
-            for i in range(N_Discriminator):
+            for i in range(N_Critic):
                 step += 1
                 _, d_loss_score = sess.run(
-                                        fetches=[d_train_step, d_loss],
-                                        feed_dict={g_x: g.gaussian_noise(g_x)})
-                print("Epoch {0} of {1}, step {2}, "
+                                    fetches=[d_train_step, d_loss],
+                                    feed_dict={g_x: g.gaussian_noise(g_x)})
+                print("Epoch {0} of {1}, step {2} "
                       "Discriminator log loss {3:.4f}".format(
                         epoch, EPOCH, step, d_loss_score))
 
+            step += 1
+            _, g_loss_score = sess.run(
+                                    fetches=[g_train_step, g_loss],
+                                    feed_dict={g_x: g.gaussian_noise(g_x)})
+            print("Epoch {0} of {1}, step {2}"
+                  " Generator log loss {3:.4f}".format(
+                    epoch, EPOCH, step, g_loss_score))
         except tf.errors.OutOfRangeError:
             print("Epoch {0} has finished.".format(epoch))
             break
