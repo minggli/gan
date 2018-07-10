@@ -171,6 +171,7 @@ class Loss(object):
             where r = G(z), f does not produce interval (0, 1)
         """
         d_loss = tf.reduce_mean(self.d_fake) - tf.reduce_mean(self.d_real)
+        # minimize {- 1/m * sum f(G(z))}
         g_loss = - tf.reduce_mean(self.d_fake)
         if derivative is not None:
             norm = tf.nn.l2_normalize(derivative, axis=1)
