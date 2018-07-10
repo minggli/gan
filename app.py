@@ -57,11 +57,12 @@ derivative = tf.reshape(derivative, [BATCH_SIZE, -1])
 d_loss, g_loss = Loss(d_real_logits, d_fake_logits).wasserstein(derivative)
 
 # Mini-batch SGD optimisers for J for both Networks
-d_train_step = tf.train.RMSPropOptimizer(LR).minimize(
-                        -d_loss,
+d_train_step = tf.train.AdamOptimizer(LR, beta1=0.5, beta2=0.9).minimize(
+                        d_loss,
                         var_list=tf.trainable_variables('Critic'))
+
 with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
-    g_train_step = tf.train.RMSPropOptimizer(LR).minimize(
+    g_train_step = tf.train.AdamOptimizer(LR, beta1=0.5, beta2=0.9).minimize(
                             g_loss,
                             var_list=tf.trainable_variables('Generator'))
 
