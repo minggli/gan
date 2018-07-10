@@ -36,16 +36,16 @@ g_params = [
 
 # gaussian noise to improve chance of intersection of D and G.
 ε = tf.random_normal([BATCH_SIZE, 64, 64, 1])
-ε = 0
+
 d_real_x = feed
-d_real_logits, d_real_o = Discriminator(d_real_x + ε, d_params).build(bn=False)
+d_real_logits, _ = Discriminator(d_real_x + ε, d_params).build(bn=False)
 
 g = Generator(g_x, g_params)
 g_logits, g_o = g.build()
-d_fake_logits, d_fake_o = Discriminator(g_o + ε, d_params).build(bn=False)
+d_fake_logits, _ = Discriminator(g_o + ε, d_params).build(bn=False)
 
 # uniform noise for penalty terms
-ε_penalty = tf.random_uniform([], name='epsilon')
+ε_penalty = tf.random_uniform([BATCH_SIZE, 64, 64, 1], name='epsilon')
 x_hat = (1 - ε_penalty) * d_real_x + ε_penalty * g_o
 d_penalty_logits, _ = Discriminator(x_hat, d_params).build(bn=False)
 derivative, = tf.gradients(d_penalty_logits, [x_hat])
