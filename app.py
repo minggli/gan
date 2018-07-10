@@ -1,8 +1,10 @@
+import tensorflow as tf
+
 from graph import Generator, Discriminator, Loss
 from config import NNConfig
-import tensorflow as tf
 from pipeline import feed, mnist_batch_iter
 from output import produce_grid, produce_gif
+
 
 N_Discriminator = 3
 BATCH_SIZE, EPOCH, LR = NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA
@@ -32,14 +34,16 @@ g_params = [
      [1, 2, 2, 1], 'SAME')
 ]
 
+noise = tf.random_normal([BATCH_SIZE, 64, 64, 1])
+
 d_real_x = feed
 d_real_logits, d_real_o = \
-    Discriminator(d_real_x, d_params, name='Critic').build(bn=False)
+    Discriminator(d_real_x + noise, d_params, name='Critic').build(bn=False)
 
 g = Generator(g_x, g_params)
 g_logits, g_o = g.build()
 d_fake_logits, d_fake_o = \
-    Discriminator(g_o, d_params, name='Critic').build(bn=False)
+    Discriminator(g_o + noise, d_params, name='Critic').build(bn=False)
 
 # uniform noise for penalty terms
 ε = tf.random_uniform([BATCH_SIZE, 64, 64, 1], name='epsilon')
@@ -47,16 +51,17 @@ x_hat = ε * d_real_x - (1 - ε) * g_o
 _, d_penalty_o = \
     Discriminator(x_hat, d_params, name='Critic').build(bn=False)
 derivative, = tf.gradients(d_penalty_o, [x_hat])
+derivative = tf.reshape(derivative, [BATCH_SIZE, -1])
 
 # Wasserstein distance with gradient penalty
 d_loss, g_loss = Loss(d_real_logits, d_fake_logits).wasserstein(derivative)
 
 # Mini-batch SGD optimisers for J for both Networks
+d_train_step = tf.train.RMSPropOptimizer(LR).minimize(
+                        -d_loss,
+                        var_list=tf.trainable_variables('Critic'))
 with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
-    d_train_step = tf.train.AdamOptimizer(LR, beta1=0, beta2=0.9).minimize(
-                            d_loss,
-                            var_list=tf.trainable_variables('Critic'))
-    g_train_step = tf.train.AdamOptimizer(LR, beta1=0, beta2=0.9).minimize(
+    g_train_step = tf.train.RMSPropOptimizer(LR).minimize(
                             g_loss,
                             var_list=tf.trainable_variables('Generator'))
 
@@ -78,7 +83,6 @@ for epoch in range(1, EPOCH + 1):
         try:
             for i in range(N_Discriminator):
                 step += 1
-                images = sess.run(feed)
                 _, d_loss_score = sess.run(
                     fetches=[d_train_step, d_loss],
                     feed_dict={g_x: g.gaussian_noise(g_x)})
