@@ -162,10 +162,10 @@ class Loss(object):
                 J(D, G) + ƛ * 1/m * {l2_norm[d f(r) / d r] - 1}**2
             where r = G(z), f does not produce interval (0, 1)
         """
-        d_loss = tf.reduce_mean(self.d_real) - tf.reduce_mean(self.d_fake)
-        g_loss = tf.reduce_mean(self.d_fake)
+        d_loss = tf.reduce_mean(self.d_fake) - tf.reduce_mean(self.d_real)
+        g_loss = - tf.reduce_mean(self.d_fake)
         if derivative is not None:
-            norm = tf.nn.l2_normalize(derivative, axis=0)
+            norm = tf.nn.l2_normalize(derivative, axis=1)
             gradient_penalty = lda * tf.reduce_mean(tf.square(norm - 1.))
             d_loss += gradient_penalty
         return d_loss, g_loss
