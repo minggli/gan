@@ -6,7 +6,7 @@ from pipeline import feed, mnist_batch_iter
 from output import produce_grid, produce_gif
 
 
-N_Discriminator = 3
+N_Discriminator = 1
 BATCH_SIZE, EPOCH, LR = NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA
 
 d_real_x = tf.placeholder(shape=[None, 64, 64, 1], dtype=tf.float32)
@@ -34,35 +34,31 @@ g_params = [
      [1, 2, 2, 1], 'SAME')
 ]
 
-noise = tf.random_normal([BATCH_SIZE, 64, 64, 1])
-
+# gaussian noise to improve chance of intersection of D and G.
+ε = tf.random_normal([BATCH_SIZE, 64, 64, 1])
+# ε = 0
 d_real_x = feed
-d_real_logits, d_real_o = \
-    Discriminator(d_real_x + noise, d_params, name='Critic').build(bn=False)
+d_real_logits, d_real_o = Discriminator(d_real_x + ε, d_params).build(bn=False)
 
 g = Generator(g_x, g_params)
 g_logits, g_o = g.build()
-d_fake_logits, d_fake_o = \
-    Discriminator(g_o + noise, d_params, name='Critic').build(bn=False)
+d_fake_logits, d_fake_o = Discriminator(g_o + ε, d_params).build(bn=False)
 
 # uniform noise for penalty terms
-ε = tf.random_uniform([BATCH_SIZE, 64, 64, 1], name='epsilon')
-x_hat = ε * d_real_x - (1 - ε) * g_o
-_, d_penalty_o = \
-    Discriminator(x_hat, d_params, name='Critic').build(bn=False)
+ε_penalty = tf.random_uniform([], name='epsilon')
+x_hat = ε_penalty * d_real_x - (1 - ε_penalty) * g_o
+_, d_penalty_o = Discriminator(x_hat, d_params).build(bn=False)
 derivative, = tf.gradients(d_penalty_o, [x_hat])
 derivative = tf.reshape(derivative, [BATCH_SIZE, -1])
 
 # Wasserstein distance with gradient penalty
 d_loss, g_loss = Loss(d_real_logits, d_fake_logits).wasserstein(derivative)
 
-# Mini-batch SGD optimisers for J for both Networks
-d_train_step = tf.train.AdamOptimizer(LR, beta1=0.5, beta2=0.9).minimize(
+d_train_step = tf.train.AdamOptimizer(LR, beta1=.5, beta2=.9).minimize(
                         d_loss,
-                        var_list=tf.trainable_variables('Critic'))
-
+                        var_list=tf.trainable_variables('Discriminator'))
 with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
-    g_train_step = tf.train.AdamOptimizer(LR, beta1=0.5, beta2=0.9).minimize(
+    g_train_step = tf.train.AdamOptimizer(LR, beta1=.5, beta2=.9).minimize(
                             g_loss,
                             var_list=tf.trainable_variables('Generator'))
 
@@ -82,21 +78,22 @@ for epoch in range(1, EPOCH + 1):
     sess.run(mnist_batch_iter.initializer)
     while True:
         try:
+            step += 1
+            _, g_loss_score = sess.run(fetches=[g_train_step, g_loss],
+                                       feed_dict={g_x: g.gaussian_noise(g_x)})
+            print("Epoch {0} of {1}, step {2}"
+                  " Generator log loss {3:.4f}".format(
+                    epoch, EPOCH, step, g_loss_score))
+
             for i in range(N_Discriminator):
                 step += 1
                 _, d_loss_score = sess.run(
-                    fetches=[d_train_step, d_loss],
-                    feed_dict={g_x: g.gaussian_noise(g_x)})
+                                        fetches=[d_train_step, d_loss],
+                                        feed_dict={g_x: g.gaussian_noise(g_x)})
                 print("Epoch {0} of {1}, step {2}, "
                       "Discriminator log loss {3:.4f}".format(
                         epoch, EPOCH, step, d_loss_score))
-            step += 1
-            _, g_loss_score = sess.run(
-                    fetches=[g_train_step, g_loss],
-                    feed_dict={g_x: g.gaussian_noise(g_x)})
-            print("Epoch {0} of {1}, step {2}, Discriminator log loss {3:.4f},"
-                  " Generator log loss {4:.4f}".format(
-                    epoch, EPOCH, step, d_loss_score, g_loss_score))
+
         except tf.errors.OutOfRangeError:
             print("Epoch {0} has finished.".format(epoch))
             break
