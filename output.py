@@ -17,7 +17,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
-def produce_grid(test_images, num_epoch, path='./results', show=False,
+def produce_grid(test_images, num_epoch, path='./results_wgan', show=False,
                  save=False, grid_size=5):
     """produce squared grid"""
 
@@ -59,5 +59,9 @@ def produce_grid(test_images, num_epoch, path='./results', show=False,
 
 
 def produce_gif(images, path):
-    path = os.path.join(path, './generation_animation.gif')
-    imageio.mimsave(path, images, fps=3)
+    fpath = os.path.join(path, './generation_animation.gif')
+    try:
+        imageio.mimsave(fpath, images, fps=3)
+    except FileNotFoundError:
+        os.mkdir(path)
+        imageio.mimsave(fpath, images, fps=3)
