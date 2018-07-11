@@ -17,7 +17,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
-def produce_grid(test_images, num_epoch, path='./results_wgan', show=False,
+def produce_grid(test_images, num_epoch, path, show=False,
                  save=False, grid_size=5):
     """produce squared grid"""
 
@@ -42,7 +42,12 @@ def produce_grid(test_images, num_epoch, path='./results_wgan', show=False,
     fig.text(0.5, 0.04, label, ha='center')
 
     if save:
-        plt.savefig(os.path.join(path, 'epoch_{0}.png'.format(num_epoch)))
+        dest = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+        try:
+            os.mkdir(dest)
+        except FileExistsError:
+            pass
+        plt.savefig(os.path.join(dest, 'epoch_{0}.png'.format(num_epoch)))
         plt.close()
     elif show:
         plt.show()
@@ -59,9 +64,10 @@ def produce_grid(test_images, num_epoch, path='./results_wgan', show=False,
 
 
 def produce_gif(images, path):
-    fpath = os.path.join(path, './generation_animation.gif')
+    dest = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
     try:
-        imageio.mimsave(fpath, images, fps=3)
-    except FileNotFoundError:
-        os.mkdir(path)
-        imageio.mimsave(fpath, images, fps=3)
+        os.mkdir(dest)
+    except FileExistsError:
+        pass
+    imageio.mimsave(os.path.join(dest, './generation_animation.gif'), images,
+                    fps=3)

@@ -103,6 +103,7 @@ for epoch in range(1, EPOCH + 1):
         print("Ending Training during {0} epoch.".format(epoch))
         break
     test_images = sess.run(g_o, feed_dict={g_x: constant, is_train: False})
-    grids_through_epochs.append(produce_grid(test_images, epoch, save=True))
+    grids_through_epochs.append(
+        produce_grid(test_images, epoch, './results_wgan', save=True))
 
 produce_gif(grids_through_epochs, path='./results_wgan')
