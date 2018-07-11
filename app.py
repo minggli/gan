@@ -1,41 +1,20 @@
+#! /usr/bin/env python3
+# -*- encoding: utf-8 -*-
 import tensorflow as tf
 
 from graph import Generator, Discriminator, Loss
-from config import NNConfig
+from config import NNConfig, g_params, d_params
 from pipeline import feed, mnist_batch_iter
 from output import produce_grid, produce_gif
 
-
-N_Critic = 3
-BATCH_SIZE, EPOCH, LR = NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA
+BATCH_SIZE, EPOCH, LR, N_CRITIC = \
+    NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA, NNConfig.N_CRITIC
 
 g_x = tf.placeholder(shape=[BATCH_SIZE, 1, 1, 100], dtype=tf.float32)
 is_train = tf.placeholder_with_default(input=True, shape=[], name='is_train')
 
-d_params = [
-    ('conv_1', [[4, 4, 1, 128], [128]], [1, 2, 2, 1], 'SAME'),
-    ('conv_2', [[4, 4, 128, 256], [256]], [1, 2, 2, 1], 'SAME'),
-    ('conv_3', [[4, 4, 256, 512], [512]], [1, 2, 2, 1], 'SAME'),
-    ('conv_4', [[4, 4, 512, 1024], [1024]], [1, 2, 2, 1], 'SAME'),
-    ('logits', [[4, 4, 1024, 1], [1]], [1, 1, 1, 1], 'VALID')
-]
-
-g_params = [
-    ('deconv_1', [[4, 4, 1024, 100], [1024], [BATCH_SIZE, 4, 4, 1024]],
-     [1, 1, 1, 1], 'VALID'),
-    ('deconv_2', [[4, 4, 512, 1024], [512], [BATCH_SIZE, 8, 8, 512]],
-     [1, 2, 2, 1], 'SAME'),
-    ('deconv_3', [[4, 4, 256, 512], [256], [BATCH_SIZE, 16, 16, 256]],
-     [1, 2, 2, 1], 'SAME'),
-    ('deconv_4', [[4, 4, 128, 256], [128], [BATCH_SIZE, 32, 32, 128]],
-     [1, 2, 2, 1], 'SAME'),
-    ('logits', [[4, 4, 1, 128], [1], [BATCH_SIZE, 64, 64, 1]],
-     [1, 2, 2, 1], 'SAME')
-]
-
-# gaussian noise to improve chance of intersection of D and G.
-
 d_real_x = feed
+# gaussian noise to improve chance of intersection of D and G.
 input_dims = d_real_x.shape
 ε = tf.random_normal(input_dims)
 
@@ -79,7 +58,7 @@ for epoch in range(1, EPOCH + 1):
         sess.run(mnist_batch_iter.initializer)
         while True:
             try:
-                for i in range(N_Critic):
+                for i in range(N_CRITIC):
                     step += 1
                     _, d_loss_score = sess.run(
                                         fetches=[d_train_step, d_loss],
