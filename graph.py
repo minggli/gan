@@ -4,7 +4,7 @@ import tensorflow as tf
 
 from pipeline import feed
 
-from graph import Generator, Discriminator, Loss
+from model import Generator, Discriminator, Loss
 from config import NNConfig, g_params, d_params
 
 BATCH_SIZE, EPOCH, LR, N_CRITIC = \
