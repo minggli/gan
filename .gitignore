@@ -13,7 +13,7 @@
 *.7z
 *.tar
 *.png
-
+*.gif
 *.gz
 
 env
