@@ -17,7 +17,7 @@ d_real_x = feed
 # gaussian noise to improve chance of intersection of D and G.
 input_dims = d_real_x.shape
 ε = tf.random_normal(input_dims)
-
+ε = 0
 d_real_logits, _ = Discriminator(d_real_x + ε, d_params).build(bn=False)
 
 g = Generator(g_x, g_params)
