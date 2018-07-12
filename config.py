@@ -6,7 +6,9 @@ module keeping some of model parameters
 
 
 class BaseConfig(object):
-    pass
+    DATA_URL = ('https://storage.googleapis.com/cvdf-datasets/mnist/'
+                'train-images-idx3-ubyte.gz')
+    DATA = './data/train-images-idx3-ubyte.gz'
 
 
 class NNConfig(BaseConfig):

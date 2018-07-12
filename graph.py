@@ -1,14 +1,11 @@
-#! /usr/bin/env python3
 # -*- encoding: utf-8 -*-
 import tensorflow as tf
 
 from pipeline import feed
-
 from model import Generator, Discriminator, Loss
 from config import NNConfig, g_params, d_params
 
-BATCH_SIZE, EPOCH, LR, N_CRITIC = \
-    NNConfig.BATCH_SIZE, NNConfig.EPOCH, NNConfig.ALPHA, NNConfig.N_CRITIC
+BATCH_SIZE, LR = NNConfig.BATCH_SIZE, NNConfig.ALPHA
 
 g_x = tf.placeholder(shape=[BATCH_SIZE, 1, 1, 100], dtype=tf.float32)
 is_train = tf.placeholder_with_default(input=True, shape=[], name='is_train')
