@@ -17,8 +17,8 @@ class _BaseNN(object):
         return tf.get_variable('bias', shape=shape, initializer=init)
 
     @staticmethod
-    def gaussian_noise(ph):
-        return np.random.normal(0, 1, size=ph.shape)
+    def gaussian_noise(batch_size):
+        return np.random.normal(0, 1, size=[batch_size, 1, 1, 100])
 
     def given_y(self, n_class):
         shape = self._input_tensor.shape.as_list()
@@ -29,8 +29,7 @@ class _BaseNN(object):
         except KeyError:
             y_ph = tf.placeholder(shape=shape, dtype=tf.float32,
                                   name='y_{0}'.format(self.name))
-        self._input_tensor = tf.concat([self._input_tensor, y_ph],
-                                       axis=len(shape) - 1)
+        self._input_tensor = tf.concat([self._input_tensor, y_ph], axis=3)
         return self
 
     def σ(self, func, input_tensor, bn=True, **kwargs):

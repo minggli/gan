@@ -3,21 +3,20 @@
 import numpy as np
 import tensorflow as tf
 
-from pipeline import mnist_batch_iter
+from pipeline import mnist_batch_iter, feed
 from output import produce_grid, produce_gif
 from graph import (d_train_step, d_loss, g_train_step, g_loss, g_z, g_o, gz,
-                   dx, d_real_y)
+                   dx, d_real_x)
 from config import NNConfig
 
 N_CRITIC, EPOCH = NNConfig.N_CRITIC, NNConfig.EPOCH
 
-
 is_train = tf.get_default_graph().get_tensor_by_name('is_train:0')
 try:
+    # [BATCH_SIZE, 64, 64, 10]
     y_dx = tf.get_default_graph().get_tensor_by_name('y_{0}:0'.format(dx.name))
+    # [BATCH_SIZE, 1, 1, 10]
     y_gz = tf.get_default_graph().get_tensor_by_name('y_{0}:0'.format(gz.name))
-    y_dx_fill = tf.reshape(d_real_y, y_gz.shape) * tf.ones_like(y_dx)
-    y_gz_fill = tf.reshape(d_real_y, y_gz.shape)
 except KeyError:
     pass
 
@@ -31,7 +30,7 @@ sess.run(init_op)
 # examples over epochs
 grids_through_epochs = list()
 # 10 * 10 grid
-const_z = gz.gaussian_noise(np.array([100, 1, 1, 100]))
+const_z = np.random.normal(0, 1, size=[100, 1, 1, 100])
 identity = np.eye(10)
 assortment = np.array([[i] * 10 for i in range(10)])
 const_gz_fill = identity[assortment].reshape(-1, 1, 1, 10)
@@ -43,12 +42,18 @@ for epoch in range(1, EPOCH + 1):
         sess.run(mnist_batch_iter.initializer)
         while True:
             try:
+                # update D(x) for i in N_CRITIC
                 for i in range(N_CRITIC):
                     step += 1
-                    dictionary = {g_z: gz.gaussian_noise(g_z)}
+                    X, y = sess.run(feed)
+                    dictionary = {d_real_x: X,
+                                  g_z: gz.gaussian_noise(X.shape[0])}
                     try:
-                        x_given_y, z_given_y = sess.run([y_dx_fill, y_gz_fill])
-                        dictionary.update({y_dx: x_given_y, y_gz: z_given_y})
+                        y_dx, y_gz
+                        y_gz_fill = y.reshape([y.shape[0], 1, 1, 10])
+                        y_dx_fill = (y_gz_fill *
+                                     np.ones([y.shape[0], 64, 64, 10]))
+                        dictionary.update({y_dx: y_dx_fill, y_gz: y_gz_fill})
                     except NameError:
                         pass
                     _, d_loss_score = sess.run(fetches=[d_train_step, d_loss],
@@ -57,11 +62,15 @@ for epoch in range(1, EPOCH + 1):
                           "Discriminator log loss {3:.4f}".format(
                             epoch, EPOCH, step, d_loss_score))
 
+                # update G(z)
                 step += 1
-                dictionary = {g_z: gz.gaussian_noise(g_z)}
+                dictionary = {g_z: gz.gaussian_noise(X.shape[0])}
                 try:
-                    x_given_y, z_given_y = sess.run([y_dx_fill, y_gz_fill])
-                    dictionary.update({y_dx: x_given_y, y_gz: z_given_y})
+                    y_dx, y_gz
+                    y_gz_fill = y.reshape([y.shape[0], 1, 1, 10])
+                    y_dx_fill = (y_gz_fill *
+                                 np.ones([y.shape[0], 64, 64, 10]))
+                    dictionary.update({y_dx: y_dx_fill, y_gz: y_gz_fill})
                 except NameError:
                     pass
                 _, g_loss_score = sess.run(fetches=[g_train_step, g_loss],
