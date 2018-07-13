@@ -20,6 +20,19 @@ class _BaseNN(object):
     def gaussian_noise(ph):
         return np.random.normal(0, 1, size=ph.shape)
 
+    def given_y(self, n_class):
+        shape = self._input_tensor.shape.as_list()
+        shape[-1] = n_class
+        try:
+            y_ph = tf.get_default_graph().get_tensor_by_name(
+                                                'y_{0}:0'.format(self.name))
+        except KeyError:
+            y_ph = tf.placeholder(shape=shape, dtype=tf.float32,
+                                  name='y_{0}'.format(self.name))
+        self._input_tensor = tf.concat([self._input_tensor, y_ph],
+                                       axis=len(shape) - 1)
+        return self
+
     def σ(self, func, input_tensor, bn=True, **kwargs):
         """non-linearity activation function."""
         if bn:
@@ -49,7 +62,7 @@ class _BaseNN(object):
         try:
             is_train = tf.get_default_graph().get_tensor_by_name('is_train:0')
         except KeyError:
-            is_train = tf.placeholder_with_default(input=False,
+            is_train = tf.placeholder_with_default(input=True,
                                                    shape=[],
                                                    name='is_train')
         return tf.layers.batch_normalization(inputs=input_tensor,
@@ -62,7 +75,7 @@ class Discriminator(_BaseNN):
     removed pooling and densely connected layers.
     """
     def __init__(self, x, hyperparams, name=None):
-        self._x = x
+        self._input_tensor = x
         self.hyperparams = hyperparams
         self.name = name or self.__class__.__name__
 
@@ -82,7 +95,7 @@ class Discriminator(_BaseNN):
 
     def build(self, **kwargs):
         with tf.variable_scope(self.name, reuse=tf.AUTO_REUSE):
-            i = self._x
+            i = self._input_tensor
             for params in self.hyperparams[:-1]:
                 i = self.lrelu(self.conv_layer(i, params), **kwargs)
             i = self.conv_layer(i, self.hyperparams[-1])
@@ -94,7 +107,7 @@ class Generator(_BaseNN):
     removed pooling and densely connected layers.
     """
     def __init__(self, z, hyperparams, name=None):
-        self._z = z
+        self._input_tensor = z
         self.hyperparams = hyperparams
         self.name = name or self.__class__.__name__
 
@@ -115,7 +128,7 @@ class Generator(_BaseNN):
 
     def build(self):
         with tf.variable_scope(self.name, reuse=False):
-            i = self._z
+            i = self._input_tensor
             for params in self.hyperparams[:-1]:
                 i = self.relu(self.deconv_layer(i, params))
             i = self.deconv_layer(i, self.hyperparams[-1])
