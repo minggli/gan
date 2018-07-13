@@ -7,6 +7,7 @@ from config import NNConfig, g_params, d_params
 
 BATCH_SIZE, LR = NNConfig.BATCH_SIZE, NNConfig.ALPHA
 
+is_train = tf.placeholder_with_default(input=True, shape=[], name='is_train')
 g_z = tf.placeholder(shape=[BATCH_SIZE, 1, 1, 100], dtype=tf.float32)
 d_real_x, d_real_y = feed
 
@@ -49,6 +50,3 @@ with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
     g_train_step = tf.train.AdamOptimizer(LR, beta1=0., beta2=.9).minimize(
                             g_loss,
                             var_list=tf.trainable_variables('Generator'))
-
-for var in tf.global_variables():
-    print(var)

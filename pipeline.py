@@ -17,7 +17,7 @@ label = mnist.train.labels
 mnist = tf.data.Dataset.from_tensor_slices((data, label))
 mnist = mnist.map(lambda x, y: (tf.image.resize_images(x, [64, 64]), y))
 # mean centering so (-1, 1)
-mnist = mnist.map(lambda x, y: ((x - 0.5) / 0.5, y))
+mnist = mnist.map(lambda x, y: ((x - 0.5) / 0.5, tf.cast(y, tf.float32)))
 
 mnist_batch = mnist.shuffle(1000).apply(
                         tf.contrib.data.batch_and_drop_remainder(BATCH_SIZE))
