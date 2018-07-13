@@ -19,6 +19,6 @@ mnist = mnist.map(lambda x, y: (tf.image.resize_images(x, [64, 64]), y))
 # mean centering so (-1, 1)
 mnist = mnist.map(lambda x, y: ((x - 0.5) / 0.5, tf.cast(y, tf.float32)))
 
-mnist_batch = mnist.take(400).shuffle(1000).batch(BATCH_SIZE)
+mnist_batch = mnist.shuffle(1000).batch(BATCH_SIZE)
 mnist_batch_iter = mnist_batch.make_initializable_iterator()
 feed = mnist_batch_iter.get_next()
