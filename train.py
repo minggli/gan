@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+# -*- encoding: utf-8 -*-
 import tensorflow as tf
 
 from pipeline import mnist_batch_iter
