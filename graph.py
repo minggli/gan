@@ -8,7 +8,7 @@ from config import NNConfig, g_params, d_params
 BATCH_SIZE, LR = NNConfig.BATCH_SIZE, NNConfig.ALPHA
 
 is_train = tf.placeholder_with_default(input=True, shape=[], name='is_train')
-g_z = tf.placeholder(shape=[BATCH_SIZE, 1, 1, 100], dtype=tf.float32)
+g_z = tf.placeholder(shape=[None, 1, 1, 100], dtype=tf.float32)
 d_real_x, d_real_y = feed
 
 # gaussian noise to improve chance of intersection of D and G.
