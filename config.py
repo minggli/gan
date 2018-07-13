@@ -1,14 +1,12 @@
 """
 config
 
-module keeping some of model parameters
+module keeping some of model parameters, further refactoring pending.
 """
 
 
 class BaseConfig(object):
-    DATA_URL = ('https://storage.googleapis.com/cvdf-datasets/mnist/'
-                'train-images-idx3-ubyte.gz')
-    DATA = './data/train-images-idx3-ubyte.gz'
+    pass
 
 
 class NNConfig(BaseConfig):

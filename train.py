@@ -8,7 +8,10 @@ from config import NNConfig
 
 N_CRITIC, EPOCH = NNConfig.N_CRITIC, NNConfig.EPOCH
 
-sess = tf.Session()
+config = tf.ConfigProto(allow_soft_placement=True)
+config.gpu_options.allow_growth = True
+config.gpu_options.per_process_gpu_memory_fraction = 0.9
+sess = tf.Session(config=config)
 init_op = tf.global_variables_initializer()
 
 sess.run(init_op)
