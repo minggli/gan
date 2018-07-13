@@ -16,17 +16,17 @@ input_dims = d_real_x.shape
 ε = tf.random_normal(input_dims)
 ε = 0
 # set up D(x + ε)
-d_real_logits, _ = Discriminator(d_real_x + ε, d_params).build(bn=False)
+d_real_logits = Discriminator(d_real_x + ε, d_params).build(bn=False)
 
 # set up D(G(z) + ε)
 g = Generator(g_x, g_params)
-g_logits, g_o = g.build()
-d_fake_logits, _ = Discriminator(g_o + ε, d_params).build(bn=False)
+g_o = g.build()
+d_fake_logits = Discriminator(g_o + ε, d_params).build(bn=False)
 
 # uniform noise for Gradient Penalty terms
 ε_penalty = tf.random_uniform(input_dims, name='epsilon')
 x_hat = ε_penalty * d_real_x + (1 - ε_penalty) * g_o
-d_penalty_logits, _ = Discriminator(x_hat, d_params).build(bn=False)
+d_penalty_logits = Discriminator(x_hat, d_params).build(bn=False)
 derivative, = tf.gradients(d_penalty_logits, [x_hat])
 
 # Wasserstein distance with gradient penalty

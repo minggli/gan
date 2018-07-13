@@ -86,8 +86,7 @@ class Discriminator(_BaseNN):
             for params in self.hyperparams[:-1]:
                 i = self.lrelu(self.conv_layer(i, params), **kwargs)
             i = self.conv_layer(i, self.hyperparams[-1])
-            o = self.σ('sigmoid', i, bn=False)
-        return i, o
+        return i
 
 
 class Generator(_BaseNN):
@@ -121,7 +120,7 @@ class Generator(_BaseNN):
                 i = self.relu(self.deconv_layer(i, params))
             i = self.deconv_layer(i, self.hyperparams[-1])
             o = self.σ('tanh', i, bn=False)
-        return i, o
+        return o
 
 
 class Loss(object):
