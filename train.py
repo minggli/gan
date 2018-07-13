@@ -1,5 +1,7 @@
 #! /usr/bin/env python3
 # -*- encoding: utf-8 -*-
+import subprocess
+
 import numpy as np
 import tensorflow as tf
 
@@ -96,3 +98,4 @@ for epoch in range(1, EPOCH + 1):
         produce_grid(test_images, epoch, './results', save=True, grid_size=10))
 
 produce_gif(grids_through_epochs, path='./results')
+subprocess.call("./send_terminate.sh", shell=True)
