@@ -174,8 +174,9 @@ class Loss(object):
         # minimize {- 1/m * sum f(G(z))}
         g_loss = - tf.reduce_mean(self.d_fake)
         if derivative is not None:
+            n = derivative.shape.ndims
             norm = tf.sqrt(
-                tf.reduce_sum(tf.square(derivative), axis=[1, 2, 3]))
+                tf.reduce_sum(tf.square(derivative), axis=list(range(1, n))))
             gradient_penalty = lda * tf.reduce_mean(tf.square(norm - 1.))
             d_loss += gradient_penalty
         return d_loss, g_loss
