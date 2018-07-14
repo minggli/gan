@@ -25,7 +25,7 @@ def produce_grid(test_images, num_epoch, path, show=False,
         raise ValueError(
             "not enough samples generated, minimum {0}.".format(grid_size))
 
-    fig, ax = plt.subplots(grid_size, grid_size, figsize=(10, 10))
+    fig, ax = plt.subplots(grid_size, grid_size, figsize=(8, 8))
     for i, j in product(range(grid_size), range(grid_size)):
         ax[i, j].get_xaxis().set_visible(False)
         ax[i, j].get_yaxis().set_visible(False)
