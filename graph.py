@@ -17,9 +17,11 @@ runtime_bsize = tf.shape(g_z)[0]
 # ε = tf.random_normal([runtime_bsize, 64, 64, 1])
 ε = 0
 dx = Discriminator(d_real_x + ε, d_params)
+
 # conditional on class y
 dx.given_y(10)
 dx.hyperparams[0][1][0][2] = dx._input_tensor.shape[-1]
+
 d_real_logits = dx.build(bn=False)
 
 for param in g_params:
@@ -27,9 +29,11 @@ for param in g_params:
 
 # set up D(G(z) + ε)
 gz = Generator(g_z, g_params)
+
 # conditional on class y
 gz.given_y(10)
 gz.hyperparams[0][1][0][-1] = gz._input_tensor.shape.as_list()[-1]
+
 g_o = gz.build()
 d_fake_logits = Discriminator(g_o + ε, d_params).given_y(10).build(bn=False)
 

@@ -7,11 +7,19 @@ GAN was introduced by [Goodfellow et al 2014][1]. It was observed in subsequent 
 
 Gaussian noise term applied to both D(x) and G(z) and Wasserstein distance are argued in [Arjovsky and Bottou 2017][2] to soften measurement of similarity and Wasserstein GAN is formally discussed in [Arjovsky et al 2017][3].
 
-[Gulrajani et al 2017][4] further improves the continuity with use of Gradient Penalty (GP)
+[Gulrajani et al 2017][4] further improves the training stability with use of Gradient Penalty (GP). [Mirza and Osindero][5] introduces a simple way of generating samples conditioned on class labels.
 
-This repository is a toy project to explore the maturity of WGAN-GP and hopefully motivate for wider application.
+This repository is a toy project to explore the maturity of WGAN-GP and hopefully motivate for wider application. 
+
+## Wasserstein GANs with Gradient Penalty
+![alt text](examples/wgan.gif "wgan example")  
+
+## Conditional Wasserstein GAN-GP
+![alt text](examples/cgan.gif "conditional wgan example")  
+
 
 [1]: https://papers.nips.cc/paper/5423-generative-adversarial-nets.pdf  
 [2]: https://arxiv.org/abs/1701.04862  
 [3]: https://arxiv.org/abs/1701.07875  
 [4]: https://arxiv.org/abs/1704.00028
+[5]: https://arxiv.org/abs/1411.1784
