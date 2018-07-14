@@ -26,12 +26,12 @@ for param in g_params:
 # set up D(G(z) + ε)
 gz = Generator(g_z, g_params)
 g_o = gz.build()
-d_fake_logits = Discriminator(g_o + ε, d_params).given_y(10).build(bn=False)
+d_fake_logits = Discriminator(g_o + ε, d_params).build(bn=False)
 
 # uniform noise for Gradient Penalty terms
 ε_penalty = tf.random_uniform([], name='epsilon')
 x_hat = ε_penalty * d_real_x + (1 - ε_penalty) * g_o
-d_penalty_logits = Discriminator(x_hat, d_params).given_y(10).build(bn=False)
+d_penalty_logits = Discriminator(x_hat, d_params).build(bn=False)
 derivative, = tf.gradients(d_penalty_logits, [x_hat])
 
 # Wasserstein distance with gradient penalty
