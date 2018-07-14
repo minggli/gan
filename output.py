@@ -70,4 +70,4 @@ def produce_gif(images, path):
     except FileExistsError:
         pass
     imageio.mimsave(os.path.join(dest, './generation_animation.gif'), images,
-                    fps=3)
+                    fps=5)

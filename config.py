@@ -4,6 +4,12 @@ config
 module keeping some of model parameters, further refactoring pending.
 """
 
+import tensorflow as tf
+
+FLAGS = tf.app.flags.FLAGS
+
+tf.app.flags.DEFINE_integer('epochs', 20,
+                            """Number of epochs to run.""")
 
 class BaseConfig(object):
     pass
@@ -11,7 +17,7 @@ class BaseConfig(object):
 
 class NNConfig(BaseConfig):
     BATCH_SIZE = 64
-    EPOCH = 20
+    EPOCH = FLAGS.epochs
     ALPHA = 1e-4
     N_CRITIC = 3
 
