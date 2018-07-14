@@ -15,9 +15,7 @@ N_CRITIC, EPOCH = NNConfig.N_CRITIC, NNConfig.EPOCH
 
 is_train = tf.get_default_graph().get_tensor_by_name('is_train:0')
 try:
-    # [BATCH_SIZE, 64, 64, 10]
     y_dx = tf.get_default_graph().get_tensor_by_name('y_{0}:0'.format(dx.name))
-    # [BATCH_SIZE, 1, 1, 10]
     y_gz = tf.get_default_graph().get_tensor_by_name('y_{0}:0'.format(gz.name))
 except KeyError:
     pass

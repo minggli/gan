@@ -42,7 +42,7 @@ d_penalty_logits = Discriminator(x_hat, d_params).given_y(10).build(bn=False)
 derivative, = tf.gradients(d_penalty_logits, [x_hat])
 
 # Wasserstein distance with gradient penalty
-d_loss, g_loss = Loss(d_real_logits, d_fake_logits).wasserstein(derivative)
+d_loss, g_loss = Loss(d_real_logits, d_fake_logits).wasserstein(derivative, 5)
 
 # gradient computation with respect to D and G variables.
 d_train_step = tf.train.AdamOptimizer(LR, beta1=0., beta2=.9).minimize(
