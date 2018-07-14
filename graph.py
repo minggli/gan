@@ -30,19 +30,17 @@ gz = Generator(g_z, g_params)
 # conditional on class y
 gz.given_y(10)
 gz.hyperparams[0][1][0][-1] = gz._input_tensor.shape.as_list()[-1]
-# gz.hyperparams[-1][1][0][2] += 10
-# gz.hyperparams[-1][1][2][-1] += 10
 g_o = gz.build()
 d_fake_logits = Discriminator(g_o + ε, d_params).given_y(10).build(bn=False)
 
 # uniform noise for Gradient Penalty terms
-ε_penalty = tf.random_uniform([runtime_bsize, 64, 64, 1], name='epsilon')
+ε_penalty = tf.random_uniform([], name='epsilon')
 x_hat = ε_penalty * d_real_x + (1 - ε_penalty) * g_o
 d_penalty_logits = Discriminator(x_hat, d_params).given_y(10).build(bn=False)
 derivative, = tf.gradients(d_penalty_logits, [x_hat])
 
 # Wasserstein distance with gradient penalty
-d_loss, g_loss = Loss(d_real_logits, d_fake_logits).wasserstein(derivative, 5)
+d_loss, g_loss = Loss(d_real_logits, d_fake_logits).wasserstein(derivative, 1)
 
 # gradient computation with respect to D and G variables.
 d_train_step = tf.train.AdamOptimizer(LR, beta1=0., beta2=.9).minimize(
