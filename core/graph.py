@@ -17,8 +17,8 @@ class Graph(object):
         self.D_param = D_parameters
         self.G_param = G_parameters
         self.Loss_fn = Loss_fn
-        self.D_fn = Discriminator
-        self.G_fn = Generator
+        self.D_fn = D_fn
+        self.G_fn = G_fn
 
     def _initialize_ph(self):
         d_real_x = tf.placeholder(tf.float32, [None, 64, 64, 1], name='x')
