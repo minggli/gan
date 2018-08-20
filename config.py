@@ -11,6 +11,7 @@ FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_integer('epochs', 20,
                             """Number of epochs to run.""")
 
+
 class BaseConfig(object):
     pass
 
@@ -20,6 +21,7 @@ class NNConfig(BaseConfig):
     EPOCH = FLAGS.epochs
     ALPHA = 1e-4
     N_CRITIC = 3
+    N_CLASS = 10
 
 
 d_params = [

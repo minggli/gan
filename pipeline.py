@@ -1,8 +1,8 @@
-import tensorflow as tf
-
 import warnings
-from config import NNConfig
+import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
+
+from config import NNConfig
 
 warnings.simplefilter('ignore')
 
