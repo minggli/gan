@@ -12,7 +12,7 @@ from helper import condition_matrice
 
 from config import NNConfig, d_params, g_params
 
-LR, N_CRITIC, EPOCH = NNConfig.ALPHA, NNConfig.N_CRITIC, NNConfig.EPOCH
+N_CRITIC, EPOCH = NNConfig.N_CRITIC, NNConfig.EPOCH
 
 d_train_step, d_loss, g_train_step, g_loss, g_z, g_o, gz, dx, d_real_x = \
     Graph(NNConfig, d_params, g_params).build()
@@ -21,10 +21,14 @@ is_train = tf.get_default_graph().get_tensor_by_name('is_train:0')
 y_dx = tf.get_default_graph().get_tensor_by_name('y_{0}:0'.format(dx.name))
 y_gz = tf.get_default_graph().get_tensor_by_name('y_{0}:0'.format(gz.name))
 
+global_saver = tf.train.Saver()
+
+
 config = tf.ConfigProto(allow_soft_placement=True)
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 init_op = tf.global_variables_initializer()
+
 
 sess.run(init_op)
 
