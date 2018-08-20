@@ -20,17 +20,22 @@ class _BaseNN(object):
     def gaussian_noise(batch_size):
         return np.random.normal(0, 1, size=[batch_size, 1, 1, 100])
 
-    def given_y(self, n_class):
-        shape = self._input_tensor.shape.as_list()
-        shape[-1] = n_class
+    def conditional_y(self, n_class):
         try:
-            y_ph = tf.get_default_graph().get_tensor_by_name(
-                                                'y_{0}:0'.format(self.name))
+            g = tf.get_default_graph()
+            y_ph = g.get_tensor_by_name('y_{0}:0'.format(self.name))
         except KeyError:
+            shape = self._input_tensor.shape.as_list()
+            shape[-1] = n_class
             y_ph = tf.placeholder(shape=shape, dtype=tf.float32,
                                   name='y_{0}'.format(self.name))
-        self._input_tensor = tf.concat([self._input_tensor, y_ph], axis=3)
-        return self
+            if isinstance(self, Discriminator):
+                self.hyperparams[0][1][0][2] += n_class
+            elif isinstance(self, Generator):
+                self.hyperparams[0][1][0][-1] += n_class
+        finally:
+            self._input_tensor = tf.concat([self._input_tensor, y_ph], axis=3)
+            return self
 
     def σ(self, func, input_tensor, bn=True, **kwargs):
         """non-linearity activation function."""
