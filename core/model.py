@@ -1,7 +1,19 @@
 # -*- encoding: utf-8 -*-
+"""
+model
 
+abstraction for Wasserstein GAN and Conditional GANs
+
+References:
+    Goodfellow et al 2014
+    Radford et al 2015
+    Arjosky et al 2017
+    Gulrajani et al 2017
+"""
 import numpy as np
 import tensorflow as tf
+
+__author__ = 'Ming Li'
 
 
 class _BaseNN(object):
@@ -15,10 +27,6 @@ class _BaseNN(object):
     def bias_variable(shape):
         init = tf.constant_initializer(0.1)
         return tf.get_variable('bias', shape=shape, initializer=init)
-
-    @staticmethod
-    def gaussian_noise(batch_size):
-        return np.random.normal(0, 1, size=[batch_size, 1, 1, 100])
 
     def conditional_y(self, n_class):
         try:
@@ -66,9 +74,7 @@ class _BaseNN(object):
         try:
             is_train = tf.get_default_graph().get_tensor_by_name('is_train:0')
         except KeyError:
-            is_train = tf.placeholder_with_default(input=True,
-                                                   shape=[],
-                                                   name='is_train')
+            is_train = tf.placeholder_with_default(True, [], 'is_train')
         return tf.layers.batch_normalization(inputs=input_tensor,
                                              training=is_train,
                                              **kwargs)
@@ -114,6 +120,10 @@ class Generator(_BaseNN):
         self._input_tensor = z
         self.hyperparams = hyperparams
         self.name = name or self.__class__.__name__
+
+    @staticmethod
+    def gaussian_noise(batch_size):
+        return np.random.normal(0, 1, size=[batch_size, 1, 1, 100])
 
     def relu(self, input_tensor, bn=True):
         return self.σ('relu', input_tensor, bn=bn)
