@@ -45,6 +45,7 @@ class Graph(object):
         g_o = gz.build()
         d_fake = self.D_fn(g_o, self.D_param).conditional_y(self.n_class)
         d_fake_logits = d_fake.build(bn=False)
+        image = 255 * (g_o * .5 + .5)
 
         # Gradient Penalty
         ε_penalty = tf.random_uniform([], name='epsilon')
@@ -72,4 +73,4 @@ class Graph(object):
                          var_list=tf.trainable_variables('Generator'))
 
         return (d_train_step, d_loss, g_train_step, g_loss, g_z, g_o, gz, dx,
-                d_real_x)
+                d_real_x, image)
