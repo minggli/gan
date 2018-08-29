@@ -6,7 +6,7 @@ from config import NNConfig
 
 warnings.simplefilter('ignore')
 
-__all__ = ['feed', 'mnist_batch_iter']
+__all__ = ['mnist_batch_iter']
 
 BATCH_SIZE = NNConfig.BATCH_SIZE
 
@@ -21,4 +21,3 @@ mnist = mnist.map(lambda x, y: ((x - 0.5) / 0.5, tf.cast(y, tf.float32)))
 
 mnist_batch = mnist.shuffle(1000).batch(BATCH_SIZE)
 mnist_batch_iter = mnist_batch.make_initializable_iterator()
-feed = mnist_batch_iter.get_next()
