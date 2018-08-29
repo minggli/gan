@@ -72,7 +72,7 @@ class _BaseNN(object):
         try:
             is_train = tf.get_default_graph().get_tensor_by_name('is_train:0')
         except KeyError:
-            is_train = tf.placeholder_with_default(True, [], 'is_train')
+            is_train = tf.placeholder_with_default(False, [], 'is_train')
         return tf.layers.batch_normalization(inputs=input_tensor,
                                              training=is_train,
                                              **kwargs)

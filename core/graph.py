@@ -23,7 +23,7 @@ class Graph(object):
     def _initialize_ph(self):
         d_real_x = tf.placeholder(tf.float32, [None, 64, 64, 1], name='x')
         g_z = tf.placeholder(tf.float32, [None, 1, 1, 100], name='z')
-        is_train = tf.placeholder_with_default(True, [], name='is_train')
+        is_train = tf.placeholder_with_default(False, [], name='is_train')
 
         # replace static batch size in g_params to dynamic
         rt_batchsize = tf.shape(g_z)[0]
