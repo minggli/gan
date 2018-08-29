@@ -47,8 +47,11 @@ default_signature = build_signature_def(
 assert is_valid_signature(default_signature)
 
 builder = SavedModelBuilder('./model_binaries')
-builder.add_meta_graph_and_variables(sess,
-                                     'SERVING',
-                                     signature_def_map=[default_signature])
+builder.add_meta_graph_and_variables(
+    sess,
+    'SERVING',
+    signature_def_map={'generate_image':
+                       default_signature},
+    strip_default_attrs=True)
 
 builder.save()
