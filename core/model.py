@@ -121,10 +121,6 @@ class Generator(_BaseNN):
         self.hyperparams = hyperparams
         self.name = name or self.__class__.__name__
 
-    @staticmethod
-    def gaussian_noise(batch_size):
-        return np.random.normal(0, 1, size=[batch_size, 1, 1, 100])
-
     def relu(self, input_tensor, bn=True):
         return self.σ('relu', input_tensor, bn=bn)
 
