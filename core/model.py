@@ -10,10 +10,8 @@ References:
     Arjosky et al 2017
     Gulrajani et al 2017
 """
-import numpy as np
-import tensorflow as tf
 
-__author__ = 'Ming Li'
+import tensorflow as tf
 
 
 class _BaseNN(object):
