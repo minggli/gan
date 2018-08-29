@@ -30,6 +30,7 @@ def train(sess, *args, config=NNConfig):
     num_epochs = config.EPOCH
     # number of Discriminator updates for each Generator update
     num_epochs_per_g = config.N_CRITIC
+    is_train = tf.get_default_graph().get_tensor_by_name('is_train:0')
 
     for epoch in range(1, config.EPOCH + 1):
         try:
@@ -45,7 +46,8 @@ def train(sess, *args, config=NNConfig):
                         dictionary = {d_real_x: X,
                                       g_z: gaussian_noise(X.shape[0]),
                                       y_dx: y_dx_fill,
-                                      y_gz: y_gz_fill}
+                                      y_gz: y_gz_fill,
+                                      is_train: True}
                         _, d_loss_score = sess.run([d_train_step, d_loss],
                                                    feed_dict=dictionary)
                         print("Epoch {0} of {1}, step {2} "
@@ -56,7 +58,8 @@ def train(sess, *args, config=NNConfig):
                     step += 1
                     dictionary = {g_z: gaussian_noise(X.shape[0]),
                                   y_dx: y_dx_fill,
-                                  y_gz: y_gz_fill}
+                                  y_gz: y_gz_fill,
+                                  is_train: True}
 
                     _, g_loss_score = sess.run([g_train_step, g_loss],
                                                feed_dict=dictionary)
@@ -67,6 +70,7 @@ def train(sess, *args, config=NNConfig):
                 except tf.errors.OutOfRangeError:
                     print("Epoch {0} has finished.".format(epoch))
                     break
+
         except KeyboardInterrupt:
             print("Ending Training after {0} epochs.".format(epoch))
             break
