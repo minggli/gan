@@ -29,8 +29,10 @@ init_op = tf.global_variables_initializer()
 
 sess.run(init_op)
 
-train(sess, mnist_batch_iter, d_real_x, g_z, y_dx, y_gz, d_train_step, d_loss,
-      g_train_step, g_loss)
+train_ops = [sess, mnist_batch_iter, d_real_x, g_z, y_dx, y_gz, d_train_step,
+             d_loss, g_train_step, g_loss]
+
+train(*train_ops)
 
 tensor_info_g_z = build_tensor_info(g_z)
 tensor_info_y_dx = build_tensor_info(y_dx)
