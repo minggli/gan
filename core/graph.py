@@ -1,4 +1,10 @@
 # -*- encoding: utf-8 -*-
+"""
+graph
+
+computation graph.
+"""
+
 import tensorflow as tf
 
 from .model import Generator, Discriminator, Loss
