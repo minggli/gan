@@ -46,7 +46,7 @@ default_signature = build_signature_def(
 
 assert is_valid_signature(default_signature)
 
-builder = SavedModelBuilder('./model_binaries')
+builder = SavedModelBuilder('./model_binaries/ver0')
 builder.add_meta_graph_and_variables(
     sess,
     'SERVING',
