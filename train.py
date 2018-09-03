@@ -8,6 +8,7 @@ from tensorflow.saved_model.utils import build_tensor_info
 from tensorflow.saved_model.signature_def_utils import build_signature_def
 from tensorflow.saved_model.signature_def_utils import is_valid_signature
 from tensorflow.saved_model.signature_constants import PREDICT_METHOD_NAME
+from tensorflow.saved_model.tag_constants import SERVING
 
 from core import Graph
 from helper import train
@@ -46,10 +47,10 @@ default_signature = build_signature_def(
 
 assert is_valid_signature(default_signature)
 
-builder = SavedModelBuilder('./model_binaries/ver0')
+builder = SavedModelBuilder('./model_binaries/generate_image/1')
 builder.add_meta_graph_and_variables(
     sess,
-    'SERVING',
+    [SERVING],
     signature_def_map={'generate_image':
                        default_signature},
     strip_default_attrs=True)
