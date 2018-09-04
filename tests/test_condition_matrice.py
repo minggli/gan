@@ -17,4 +17,4 @@ class TestConditionMatrice(object):
         row, col = np.where(self.z == 1)
 
         for r, c in zip(row, col):
-            assert (y_dx[r, 0, 0, c] == 1).all()
+            assert (y_dx[r, :, :, c] == 1).all()
