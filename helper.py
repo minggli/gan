@@ -3,6 +3,7 @@ helpers
 
 utility functions and controllers
 """
+
 import numpy as np
 import tensorflow as tf
 
@@ -74,3 +75,33 @@ def train(sess, *args, config=NNConfig):
         except KeyboardInterrupt:
             print("Ending Training after {0} epochs.".format(epoch))
             break
+
+
+def _try_cast_integer(input):
+    try:
+        return int(input)
+    except (ValueError, TypeError) as e:
+        return input
+
+
+def _validate_integer(input):
+    import numbers
+
+    if not isinstance(input, numbers.Number):
+        input = _try_cast_integer(input)
+
+    try:
+        input = int(round(input, 0))
+    except TypeError:
+        return None
+
+    if input not in range(10):
+        return None
+
+    return input
+
+
+def produce_inputs(i):
+    noise = gaussian_noise(1)
+    y_gz, y_dx = condition_matrice(np.eye(10)[i])
+    return noise, y_gz, y_dx
