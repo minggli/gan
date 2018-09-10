@@ -32,9 +32,7 @@ train_ops = [sess, mnist_batch_iter, d_real_x, g_z, y_dx, y_gz, d_train_step,
 train(*train_ops)
 
 generative_signature = predict_signature_def(
-        inputs={'noise': g_z,
-                'y_dx': y_dx,
-                'y_gz': y_gz},
+        inputs={'noise': g_z, 'y_dx': y_dx, 'y_gz': y_gz},
         outputs={'image': image}
 )
 
