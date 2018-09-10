@@ -4,6 +4,10 @@ helpers
 utility functions and controllers
 """
 
+import numbers
+from io import BytesIO
+from PIL import Image
+
 import numpy as np
 import tensorflow as tf
 
@@ -15,6 +19,9 @@ def condition_matrice(label, img_size=64):
     information resides in the last dimension"""
     y_gz = label.reshape(-1, 1, 1, label.shape[-1])
     y_dx = y_gz * np.ones([img_size, img_size, label.shape[-1]])
+
+    y_gz = y_gz.astype(np.float32)
+    y_dx = y_dx.astype(np.float32)
     return y_gz, y_dx
 
 
@@ -85,8 +92,6 @@ def _try_cast_integer(input):
 
 
 def _validate_integer(input):
-    import numbers
-
     if not isinstance(input, numbers.Number):
         input = _try_cast_integer(input)
 
@@ -102,6 +107,18 @@ def _validate_integer(input):
 
 
 def produce_inputs(i):
-    noise = gaussian_noise(1)
+    noise = gaussian_noise(1).astype(np.float32)
     y_gz, y_dx = condition_matrice(np.eye(10)[i])
-    return noise, y_gz, y_dx
+
+    return noise, y_dx, y_gz
+
+
+def produce_output(flat_image, img_size=64):
+    """return file object to generated image."""
+    arr = np.asarray(flat_image).reshape(img_size, img_size)
+    img = Image.fromarray(arr, mode='L')
+    large_img = img.resize((img_size * 5, img_size * 5), Image.ANTIALIAS)
+    buf = BytesIO()
+    large_img.save(buf, format='png')
+    buf.seek(0)
+    return buf
