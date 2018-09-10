@@ -45,7 +45,6 @@ generative_signature = build_signature_def(
                         outputs={'image': tensor_info_image},
                         method_name=PREDICT_METHOD_NAME)
 
-
 assert is_valid_signature(generative_signature)
 
 builder = SavedModelBuilder('./model_binaries/generate_image/1')
