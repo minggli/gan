@@ -2,7 +2,7 @@
 """
 graph
 
-computation graph.
+abstraction to instantiate computation graph.
 """
 
 import tensorflow as tf
@@ -39,6 +39,7 @@ class Graph(object):
         return [d_real_x, g_z, is_train]
 
     def build(self):
+        """build computtion graph for Conditional WGAN-GP."""
         self.placeholders = self._initialize_ph()
         d_real_x, g_z, *discard = self.placeholders
 
@@ -51,6 +52,7 @@ class Graph(object):
         g_o = gz.build()
         d_fake = self.D_fn(g_o, self.D_param).conditional_y(self.n_class)
         d_fake_logits = d_fake.build(bn=False)
+        # image output tensor, unused during training
         image = 255 * (g_o * .5 + .5)
 
         # Gradient Penalty

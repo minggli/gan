@@ -6,6 +6,7 @@ abstraction for Wasserstein GAN and Conditional GANs
 
 References:
     Goodfellow et al 2014
+    Mirza and Osindero 2014
     Radford et al 2015
     Arjosky et al 2017
     Gulrajani et al 2017
