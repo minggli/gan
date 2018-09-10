@@ -53,7 +53,7 @@ class Graph(object):
         d_fake = self.D_fn(g_o, self.D_param).conditional_y(self.n_class)
         d_fake_logits = d_fake.build(bn=False)
         # image output tensor, unused during training
-        image = 255 * (g_o * .5 + .5)
+        image = tf.cast(tf.reshape((255 * (g_o * .5 + .5))), tf.uint8)
 
         # Gradient Penalty
         ε_penalty = tf.random_uniform([], name='epsilon')
