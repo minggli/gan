@@ -18,3 +18,9 @@ class TestConditionMatrice(object):
 
         for r, c in zip(row, col):
             assert (y_dx[r, :, :, c] == 1).all()
+
+    def test_precision(self):
+        y_gz, y_dx = condition_matrice(self.z)
+
+        assert y_gz.dtype == np.float32
+        assert y_dx.dtype == np.float32
