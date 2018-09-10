@@ -38,21 +38,21 @@ tensor_info_y_dx = build_tensor_info(y_dx)
 tensor_info_y_gz = build_tensor_info(y_gz)
 tensor_info_image = build_tensor_info(image)
 
-default_signature = build_signature_def(
+generative_signature = build_signature_def(
                         inputs={'noise': tensor_info_g_z,
                                 'y_dx': tensor_info_y_dx,
                                 'y_gz': tensor_info_y_gz},
                         outputs={'image': tensor_info_image},
                         method_name=PREDICT_METHOD_NAME)
 
-assert is_valid_signature(default_signature)
+
+assert is_valid_signature(generative_signature)
 
 builder = SavedModelBuilder('./model_binaries/generate_image/1')
 builder.add_meta_graph_and_variables(
     sess,
     [SERVING],
-    signature_def_map={'generate_image':
-                       default_signature},
+    signature_def_map={'generate': generative_signature},
     strip_default_attrs=True)
 
 builder.save()
