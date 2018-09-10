@@ -4,10 +4,8 @@
 import tensorflow as tf
 
 from tensorflow.saved_model.builder import SavedModelBuilder
-from tensorflow.saved_model.utils import build_tensor_info
-from tensorflow.saved_model.signature_def_utils import build_signature_def
+from tensorflow.saved_model.signature_def_utils import predict_signature_def
 from tensorflow.saved_model.signature_def_utils import is_valid_signature
-from tensorflow.saved_model.signature_constants import PREDICT_METHOD_NAME
 from tensorflow.saved_model.tag_constants import SERVING
 
 from core import Graph
@@ -33,21 +31,16 @@ train_ops = [sess, mnist_batch_iter, d_real_x, g_z, y_dx, y_gz, d_train_step,
 
 train(*train_ops)
 
-tensor_info_g_z = build_tensor_info(g_z)
-tensor_info_y_dx = build_tensor_info(y_dx)
-tensor_info_y_gz = build_tensor_info(y_gz)
-tensor_info_image = build_tensor_info(image)
-
-generative_signature = build_signature_def(
-                        inputs={'noise': tensor_info_g_z,
-                                'y_dx': tensor_info_y_dx,
-                                'y_gz': tensor_info_y_gz},
-                        outputs={'image': tensor_info_image},
-                        method_name=PREDICT_METHOD_NAME)
+generative_signature = predict_signature_def(
+        inputs={'noise': g_z,
+                'y_dx': y_dx,
+                'y_gz': y_gz},
+        outputs={'image': image}
+)
 
 assert is_valid_signature(generative_signature)
 
-builder = SavedModelBuilder('./model_binaries/generate_image/1')
+builder = SavedModelBuilder('./model_binaries/generate_image/0')
 builder.add_meta_graph_and_variables(
     sess,
     [SERVING],
