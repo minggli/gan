@@ -12,11 +12,10 @@ from flask import (request, abort, render_template, flash, redirect,
 
 from helper import _validate_integer
 from serving import gRPC_generate, gRPC_predict
-
+from config import APP_CONFIG
 
 app = Flask("mnist_gan")
-SECRET_KEY = 'e07a29ed46559202147d177680570f331fa4e1e3e0570d95f591d2cab9f6c49e'
-app.secret_key = SECRET_KEY
+app.config.update(APP_CONFIG)
 
 
 @app.route('/generate', methods=['GET', 'POST'])

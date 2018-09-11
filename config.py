@@ -12,6 +12,13 @@ tf.app.flags.DEFINE_integer('model_version', 0, 'version number of the model.')
 
 FLAGS = tf.app.flags.FLAGS
 
+APP_CONFIG = {
+    'SECRET_KEY': 'e07a29ed46559202147d177680570f'
+                  '331fa4e1e3e0570d95f591d2cab9f6c49e',
+    'SESSION_COOKIE_NAME': 'session',
+    'DEBUG': False
+}
+
 d_params = [
     ('conv_1', [[4, 4, 1, 128], [128]], [1, 2, 2, 1], 'SAME'),
     ('conv_2', [[4, 4, 128, 256], [256]], [1, 2, 2, 1], 'SAME'),
@@ -47,7 +54,7 @@ class NNConfig(BaseConfig):
 
 
 class ServingConfig(BaseConfig):
-    MODEL_PATH = './bin'
+    MODEL_BASE_PATH = './bin'
     MODEL_NAME = 'mnist_gan'
     MODEL_VER = str(FLAGS.model_version)
     HOST = '0.0.0.0'

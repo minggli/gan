@@ -15,7 +15,7 @@ from helper import train
 from pipeline import mnist_batch_iter
 from config import NNConfig, d_params, g_params, ServingConfig
 
-export_path = os.path.join(ServingConfig.MODEL_PATH,
+export_path = os.path.join(ServingConfig.MODEL_BASE_PATH,
                            ServingConfig.MODEL_NAME,
                            ServingConfig.MODEL_VER)
 
