@@ -116,10 +116,16 @@ def produce_inputs(i):
     return noise, y_dx, y_gz
 
 
-def _process_image(array_image):
-    arr = np.asarray(array_image)
-    dim = int(np.sqrt(arr.shape[0]))
-    arr = arr.reshape(dim, dim)
+def _process_image(image_filelike):
+    buf = BytesIO(image_filelike.read())
+    img = Image.open(buf).convert('L')
+    resized = img.resize((64, 64), Image.ANTIALIAS)
+    return np.array(resized).reshape(1, 64, 64, 1).astype(np.float32)
+
+
+def _process_array(array):
+    dim = int(len(array) ** .5)
+    arr = np.asarray(array).reshape(dim, dim).astype(np.uint8)
     img = Image.fromarray(arr, mode='L')
     larger = img.resize((dim * 5, dim * 5), Image.ANTIALIAS)
     return larger
@@ -130,7 +136,7 @@ def file_response(func):
     def wrapper(*args, **kwargs):
         buf = BytesIO()
         array_image = func(*args, **kwargs)
-        image = _process_image(array_image)
+        image = _process_array(array_image)
         image.save(buf, format='png')
         buf.seek(0)
         return send_file(buf,
