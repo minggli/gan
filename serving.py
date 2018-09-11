@@ -10,7 +10,7 @@ from tensorflow import make_tensor_proto
 from tensorflow_serving.apis import prediction_service_pb2_grpc
 from tensorflow_serving.apis import predict_pb2
 
-from helper import produce_inputs, produce_output
+from helper import produce_inputs, file_response
 
 
 channel = grpc.insecure_channel('localhost:8500')
@@ -31,9 +31,10 @@ def _request_factory(request, integer):
     return request
 
 
+@file_response
 def feed_serving(integer, stub=stub):
     """initiate a new request via gRPC to server and return value."""
     request = predict_pb2.PredictRequest()
     filled_request = _request_factory(request, integer)
     result = stub.Predict(filled_request, 10.)
-    return produce_output(result.outputs['image'].float_val)
+    return result.outputs['image'].float_val

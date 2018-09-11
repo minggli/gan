@@ -1,13 +1,13 @@
+#!/usr/bin/env python
 """
 app
 
 flask app serving external client calls.
 """
 from random import randint
-from uuid import uuid4
 
 from flask import Flask
-from flask import request, abort, send_file
+from flask import request, abort
 
 from helper import _validate_integer
 from serving import feed_serving
@@ -22,21 +22,12 @@ def generate():
         digit = randint(0, 9)
     elif request.method == 'POST':
         raw = request.get_data()
-
-        if not request.data:
-            abort(400)
-
         digit = _validate_integer(raw)
 
         if digit is None:
             abort(400)
 
-    rv = feed_serving(digit)
-
-    return send_file(rv,
-                     as_attachment=False,
-                     attachment_filename=f'{uuid4()}.png',
-                     mimetype='image/png')
+    return feed_serving(digit)
 
 
 if __name__ == '__main__':

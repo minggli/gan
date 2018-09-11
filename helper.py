@@ -6,10 +6,14 @@ utility functions and controllers
 
 import numbers
 from io import BytesIO
-from PIL import Image
+from uuid import uuid4
+from functools import wraps
 
 import numpy as np
 import tensorflow as tf
+
+from PIL import Image
+from flask import send_file
 
 from config import NNConfig
 
@@ -109,16 +113,28 @@ def _validate_integer(input):
 def produce_inputs(i):
     noise = gaussian_noise(1).astype(np.float32)
     y_gz, y_dx = condition_matrice(np.eye(10)[i])
-
     return noise, y_dx, y_gz
 
 
-def produce_output(flat_image, img_size=64):
-    """return file object to generated image."""
-    arr = np.asarray(flat_image).reshape(img_size, img_size)
+def _process_image(array_image):
+    arr = np.asarray(array_image)
+    dim = int(np.sqrt(arr.shape[0]))
+    arr = arr.reshape(dim, dim)
     img = Image.fromarray(arr, mode='L')
-    large_img = img.resize((img_size * 5, img_size * 5), Image.ANTIALIAS)
-    buf = BytesIO()
-    large_img.save(buf, format='png')
-    buf.seek(0)
-    return buf
+    larger = img.resize((dim * 5, dim * 5), Image.ANTIALIAS)
+    return larger
+
+
+def file_response(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        buf = BytesIO()
+        array_image = func(*args, **kwargs)
+        image = _process_image(array_image)
+        image.save(buf, format='png')
+        buf.seek(0)
+        return send_file(buf,
+                         as_attachment=False,
+                         attachment_filename=f'{uuid4()}.png',
+                         mimetype='image/png')
+    return wrapper
