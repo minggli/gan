@@ -11,10 +11,10 @@ from flask import (request, abort, render_template, flash, redirect,
                    make_response)
 
 from helper import _validate_integer
-from serving import gRPC_generate, gRPC_predict
+from serving import grpc_generate, grpc_predict
 from config import APP_CONFIG
 
-app = Flask("mnist_gan")
+app = Flask(__name__)
 app.config.update(APP_CONFIG)
 
 
@@ -29,7 +29,7 @@ def generate():
         if digit is None:
             abort(400)
 
-    return gRPC_generate(digit)
+    return grpc_generate(digit)
 
 
 @app.route('/predict', methods=['GET', 'POST'])
@@ -39,7 +39,7 @@ def predict():
             flash('no image uploaded.')
             return redirect(request.url)
         f = request.files['file']
-        prob, = gRPC_predict(f)
+        prob, = grpc_predict(f)
         return make_response(f'{prob:.4f}')
     return render_template('upload.html')
 

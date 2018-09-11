@@ -2,7 +2,7 @@ import warnings
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
-from config import NNConfig
+from .config import NNConfig
 
 warnings.simplefilter('ignore')
 

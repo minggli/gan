@@ -57,5 +57,4 @@ class ServingConfig(BaseConfig):
     MODEL_BASE_PATH = './bin'
     MODEL_NAME = 'mnist_gan'
     MODEL_VER = str(FLAGS.model_version)
-    HOST = '0.0.0.0'
-    PORT = 8501
+    SERVING_DOMAIN = '0.0.0.0:8501'

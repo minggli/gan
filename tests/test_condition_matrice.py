@@ -1,6 +1,6 @@
 import numpy as np
 
-from helper import condition_matrice
+from gan.graph import condition_matrice
 
 
 class TestConditionMatrice(object):

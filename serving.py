@@ -11,10 +11,9 @@ from tensorflow_serving.apis import prediction_service_pb2_grpc
 from tensorflow_serving.apis import predict_pb2
 
 from helper import produce_inputs, file_response, _process_image
+from config import ServingConfig
 
-
-channel = grpc.insecure_channel('localhost:8500')
-# tensorflow server gRPC port
+channel = grpc.insecure_channel(ServingConfig.SERVING_DOMAIN)
 stub = prediction_service_pb2_grpc.PredictionServiceStub(channel)
 
 
@@ -34,6 +33,7 @@ def make_generation_request(request, integer):
 def make_classification_request(request, image):
     request.model_spec.name = 'mnist_gan'
     request.model_spec.signature_name = 'classify'
+
     # fill tensor protos
     _, y_dx, y_gz = produce_inputs(1)
     request.inputs['d_real_x'].CopyFrom(make_tensor_proto(image))
@@ -42,7 +42,7 @@ def make_classification_request(request, image):
     return request
 
 
-def gRPC_predict(image, stub=stub):
+def grpc_predict(image, stub=stub):
     request = predict_pb2.PredictRequest()
     arr = _process_image(image)
     filled_request = make_classification_request(request, arr)
@@ -51,7 +51,7 @@ def gRPC_predict(image, stub=stub):
 
 
 @file_response
-def gRPC_generate(integer, stub=stub):
+def grpc_generate(integer, stub=stub):
     """initiate a new request via gRPC to server and return value."""
     request = predict_pb2.PredictRequest()
     filled_request = make_generation_request(request, integer)
