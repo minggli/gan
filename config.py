@@ -46,5 +46,6 @@ class NNConfig(BaseConfig):
     N_CLASS = 10
 
 
-class AppConfig(BaseConfig):
+class ServingConfig(BaseConfig):
+    HOST = '0.0.0.0'
     PORT = 8501
