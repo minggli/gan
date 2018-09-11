@@ -6,11 +6,11 @@ module keeping some of model parameters, further refactoring pending.
 
 import tensorflow as tf
 
-FLAGS = tf.app.flags.FLAGS
-
 tf.app.flags.DEFINE_integer('epochs', 20,
                             """Number of epochs to run.""")
+tf.app.flags.DEFINE_integer('model_version', 0, 'version number of the model.')
 
+FLAGS = tf.app.flags.FLAGS
 
 d_params = [
     ('conv_1', [[4, 4, 1, 128], [128]], [1, 2, 2, 1], 'SAME'),
@@ -47,5 +47,8 @@ class NNConfig(BaseConfig):
 
 
 class ServingConfig(BaseConfig):
+    MODEL_PATH = './bin'
+    MODEL_NAME = 'mnist_gan'
+    MODEL_VER = str(FLAGS.model_version)
     HOST = '0.0.0.0'
     PORT = 8501
