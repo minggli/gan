@@ -40,9 +40,8 @@ def predict():
             return redirect(request.url)
         f = request.files['file']
         prob = grpc_predict(f)
-        print(prob)
-        return make_response(f'{prob:.4f}')
-    return render_template('upload.html')
+        return render_template('predict.html', result=prob)
+    return render_template('predict.html')
 
 
 if __name__ == '__main__':
