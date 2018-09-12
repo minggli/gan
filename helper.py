@@ -70,7 +70,7 @@ def file_response(func):
         buf.seek(0)
         return send_file(buf,
                          as_attachment=False,
-                         attachment_filename=f'{uuid4()}.png',
+                         attachment_filename='{}.png'.format(uuid4()),
                          mimetype='image/png')
     return wrapper
 
