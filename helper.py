@@ -73,3 +73,13 @@ def file_response(func):
                          attachment_filename=f'{uuid4()}.png',
                          mimetype='image/png')
     return wrapper
+
+
+def ovr_normalize(func):
+    """One versus Rest normalization of probabilities ensure sum to 1."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        class_prob = func(*args, **kwargs)
+        normalizer = sum(class_prob.values()) or 1
+        return {k: v / normalizer for k, v in class_prob.items()}
+    return wrapper

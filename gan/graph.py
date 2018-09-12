@@ -7,7 +7,7 @@ abstraction to instantiate computation graph and dependencies.
 import numpy as np
 import tensorflow as tf
 
-from model import Generator, Discriminator, Loss
+from .model import Generator, Discriminator, Loss
 
 
 def gaussian_noise(batch_size):

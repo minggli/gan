@@ -39,7 +39,8 @@ def predict():
             flash('no image uploaded.')
             return redirect(request.url)
         f = request.files['file']
-        prob, = grpc_predict(f)
+        prob = grpc_predict(f)
+        print(prob)
         return make_response(f'{prob:.4f}')
     return render_template('upload.html')
 

@@ -3,7 +3,7 @@
 train
 
 deploy computation graph, approximate P(x) through adverserial learning and
-export saved_model for serving.
+export saved_model for serving two signatures.
 """
 import os
 import tensorflow as tf
@@ -15,9 +15,9 @@ from tensorflow.saved_model.signature_constants import CLASSIFY_METHOD_NAME
 from tensorflow.saved_model.tag_constants import SERVING
 from tensorflow.saved_model.utils import build_tensor_info
 
-from graph import Graph, train
-from pipeline import mnist_batch_iter
-from .config import ServingConfig, NNConfig, d_params, g_params
+from .graph import Graph, train
+from .pipeline import mnist_batch_iter
+from config import ServingConfig, NNConfig, d_params, g_params
 
 export_path = os.path.join(ServingConfig.MODEL_BASE_PATH,
                            ServingConfig.MODEL_NAME,
