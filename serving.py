@@ -19,7 +19,7 @@ stub = prediction_service_pb2_grpc.PredictionServiceStub(channel)
 
 def make_generation_request(request, integer):
     """parameterize api call."""
-    request.model_spec.name = 'mnist_gan'
+    request.model_spec.name = ServingConfig.MODEL_NAME
     request.model_spec.signature_name = 'generate'
 
     # fill tensor protos
@@ -41,7 +41,7 @@ def make_classification_request(request, integer, image):
 @ovr_normalize
 def grpc_predict(image, stub=stub):
     request = predict_pb2.PredictRequest()
-    request.model_spec.name = 'mnist_gan'
+    request.model_spec.name = ServingConfig.MODEL_NAME
     request.model_spec.signature_name = 'classify'
     arr = _process_image(image)
     results = []

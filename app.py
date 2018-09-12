@@ -7,8 +7,7 @@ flask app serving external client calls.
 from random import randint
 
 from flask import Flask
-from flask import (request, abort, render_template, flash, redirect,
-                   make_response)
+from flask import request, abort, render_template, flash, redirect
 
 from helper import _validate_integer
 from serving import grpc_generate, grpc_predict
@@ -16,6 +15,11 @@ from config import APP_CONFIG
 
 app = Flask(__name__)
 app.config.update(APP_CONFIG)
+
+
+@app.route('/')
+def index():
+    return redirect('/generate')
 
 
 @app.route('/generate', methods=['GET', 'POST'])

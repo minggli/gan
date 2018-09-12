@@ -32,8 +32,7 @@ y_gz = tf.get_default_graph().get_tensor_by_name('y_{0}:0'.format(gz.name))
 config = tf.ConfigProto(allow_soft_placement=True)
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
-init_op = tf.global_variables_initializer()
-sess.run(init_op)
+sess.run(tf.global_variables_initializer())
 
 train_ops = [sess, mnist_batch_iter, d_real_x, g_z, y_dx, y_gz, d_train_step,
              d_loss, g_train_step, g_loss]
@@ -66,6 +65,3 @@ builder.add_meta_graph_and_variables(
     strip_default_attrs=True)
 
 builder.save()
-
-if __name__ == '__main__':
-    tf.app.run()

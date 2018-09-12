@@ -124,7 +124,7 @@ class Graph(object):
         d_fake_logits = d_fake.build(bn=False)
 
         # image output tensor, unused during training
-        image = 255 * (g_o * .5 + .5)
+        image = tf.reshape(255 * (g_o * .5 + .5), [-1, 1])
 
         # Gradient Penalty
         ε_penalty = tf.random_uniform([], name='epsilon')
