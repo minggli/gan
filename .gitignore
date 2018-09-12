@@ -25,9 +25,7 @@ build
 _mailinglist
 .tox
 MNIST_data/
-tensorflow/
-models/
-
+bin/
 .cache/
 .idea/
 
