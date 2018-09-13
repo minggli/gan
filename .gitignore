@@ -28,7 +28,7 @@ MNIST_data/
 bin/
 .cache/
 .idea/
-
+.pytest_cache/
 
 # Coverage reports
 htmlcov
