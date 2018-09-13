@@ -7,7 +7,7 @@ flask app serving external client calls.
 from random import randint
 
 from flask import Flask
-from flask import request, abort, render_template, flash, redirect
+from flask import request, abort, render_template, redirect
 
 from helper import _validate_integer
 from serving import grpc_generate, grpc_predict
@@ -36,11 +36,13 @@ def generate():
     return grpc_generate(digit)
 
 
-@app.route('/predict', methods=['GET', 'POST'])
+# TODO Wasserstein loss doesn't discriminate real or fake image like original
+# GAN loss function, more work needed to reuse Critic/Discriminator
+# to classify generated image. Loss function must include supervise element.
+# @app.route('/predict', methods=['GET', 'POST'])
 def predict():
     if request.method == 'POST':
         if 'file' not in request.files:
-            flash('no image uploaded.')
             return redirect(request.url)
         f = request.files['file']
         prob = grpc_predict(f)
