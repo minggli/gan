@@ -97,6 +97,7 @@ Send2Trash==1.5.0
 simplegeneric==0.8.1
 six==1.11.0
 stevedore==1.28.0
+tensorflow-serving-api==1.10.1
 tensorflow-gpu==1.9.0
 termcolor==1.1.0
 terminado==0.8.1
