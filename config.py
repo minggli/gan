@@ -57,4 +57,4 @@ class ServingConfig(BaseConfig):
     MODEL_BASE_PATH = './bin'
     MODEL_NAME = 'model'
     MODEL_VER = str(FLAGS.model_version)
-    SERVING_DOMAIN = '0.0.0.0:8500'
+    SERVING_DOMAIN = 'serving:8500'

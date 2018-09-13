@@ -3,10 +3,10 @@ services:
   web:
     build: .
     ports:
-      - "5000:5000"
+      - 5000:5000
   serving:
-    image: "tensorflow/serving"
+    image: 'tensorflow/serving'
     ports:
-      - "8500:8500"
+      - 8500:8500
     volumes:
       - ./bin/:/models
