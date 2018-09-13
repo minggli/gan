@@ -12,16 +12,18 @@ conditionally generate images of handwriting digits via RESTful and gRPC APIs. T
 this application uses containerized flask app and Tensorflow Model Server.  
 
 ### Requirement
-docker-compose >= 1.13
-or
-Python >= 3.5 and `requirement.txt`
+docker-compose >= 1.13  
+or  
+Python >= 3.5 and `requirement.txt`  
 
 ### Training
-`python -m gan.train --epochs 20` to train and export model binaries to `./bin` (default) so that Tensorflow Model Server can then load the model for serving.  
+`python -m gan.train --epochs 20`  
+to train and export model to `./bin` (default) so that Tensorflow Model Server can then load it for serving.  
 
 ### Endpoint
 `GET host:5000/generate` samples a generated image from approximated p(x).  
-`POST host:5000/generate` samples a generated image from approximated p(x|c) where c is the integer supplied in payload.  
+
+`POST host:5000/generate` samples a generated image from approximated p(x|c) where c ∈ {0, 1, 2, ..., 8, 9} as raw data in request.  
 
 ## Literature Review
 Generative Adversarial Networks (GAN) is a framework of adversarial learning between Discriminator D(x) and Generator G(z) that aims to achieve Nash equilibrium between D and G where G(z) should successfully approximate P(x) and therefore generate realistic samples.
