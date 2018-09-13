@@ -34,7 +34,6 @@ Gaussian noise term applied to both D(x) and G(z) and Wasserstein distance are a
 
 [Gulrajani et al 2017][4] further improves the training stability with use of Gradient Penalty (GP). [Mirza and Osindero 2014][5] introduces a simple way of generating samples conditioned on class labels.
 
-### References
 [1]: https://papers.nips.cc/paper/5423-generative-adversarial-nets.pdf  
 [2]: https://arxiv.org/abs/1701.04862  
 [3]: https://arxiv.org/abs/1701.07875  
