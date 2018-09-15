@@ -1,5 +1,5 @@
 # gan (generative adversarial networks)
-conditionally generate images of handwriting digits via RESTful and gRPC APIs. This repository is a toy project by Ming Li to explore the maturity of WGAN-GP and motivate wider application.
+conditionally generate images of handwriting digits via RESTful and gRPC APIs. This repository is a toy project by Ming Li to explore the maturity of GAN with Wasserstein distance and Gradient Penalty and motivate wider application.
 
 ## Examples
 ### Wasserstein GANs with Gradient Penalty
@@ -19,6 +19,9 @@ Python >= 3.5 and `requirement.txt`
 ### Training
 `python -m gan.train --epochs 20`  
 to train and export model to `./bin` (default) so that Tensorflow Model Server can then load it for serving.  
+
+### Spin up services
+`docker-compose up` to start containers for web app and tensorflow serving.  
 
 ### Endpoint
 `GET host:5000/generate` samples a generated image from approximated p(x).  
