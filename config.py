@@ -45,6 +45,15 @@ class BaseConfig(object):
     pass
 
 
+class DataConfig(BaseConfig):
+    # Fashion MNIST
+    FASHION = ("https://github.com/zalandoresearch/"
+               "fashion-mnist/raw/master/data/fashion/")
+    # handwriting digits
+    DIGIT = "http://yann.lecun.com/exdb/mnist/"
+    LOCAL_PATH = './data'
+
+
 class NNConfig(BaseConfig):
     BATCH_SIZE = 64
     EPOCH = FLAGS.epochs

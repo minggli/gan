@@ -8,16 +8,15 @@ import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
 
-from config import NNConfig
+from config import NNConfig, DataConfig
 
 warnings.simplefilter('ignore')
 
 __all__ = ['mnist_batch_iter']
 
-# Fashion MNIST
-FASHION = ("https://github.com/zalandoresearch/"
-           "fashion-mnist/raw/master/data/fashion/")
-LOCAL_PATH = './data'
+
+BASEURL = DataConfig.DIGIT
+LOCAL_PATH = DataConfig.LOCAL_PATH
 
 TRAIN_IMAGE = 'train-images-idx3-ubyte.gz'
 TRAIN_LABEL = 'train-labels-idx1-ubyte.gz'
@@ -38,7 +37,7 @@ def traverse(root, ext=None):
     return files
 
 
-def maybe_download(local, url=FASHION, chunk_size=4096):
+def maybe_download(local, url=BASEURL, chunk_size=4096):
     if not os.path.exists(local):
         filename = os.path.basename(local)
         sys.stdout.write("Downloading {}".format(filename) + '\n')
