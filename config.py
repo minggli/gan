@@ -3,7 +3,7 @@ config
 
 module keeping some of model parameters, further refactoring pending.
 """
-
+from pathlib import Path
 import tensorflow as tf
 
 tf.app.flags.DEFINE_integer('epochs', 20,
@@ -51,7 +51,7 @@ class DataConfig(BaseConfig):
                "fashion-mnist/raw/master/data/fashion/")
     # handwriting digits
     DIGIT = "http://yann.lecun.com/exdb/mnist/"
-    LOCAL_PATH = './data'
+    LOCAL_PATH = Path('./data')
 
 
 class NNConfig(BaseConfig):

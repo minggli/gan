@@ -38,7 +38,7 @@ def traverse(root, ext=None):
 
 
 def maybe_download(local, url=BASEURL, chunk_size=4096):
-    if not os.path.exists(local):
+    if not local.exists():
         filename = os.path.basename(local)
         sys.stdout.write("Downloading {}".format(filename) + '\n')
         sys.stdout.flush()
@@ -74,11 +74,11 @@ def parse_label(filelike, magic=2049):
     return np.eye(10)[array]
 
 
-if not os.path.exists(LOCAL_PATH):
-    os.mkdir(LOCAL_PATH)
+if not LOCAL_PATH.exists():
+    LOCAL_PATH.mkdir()
 
-X_train = parse_image(maybe_download(os.path.join(LOCAL_PATH, TRAIN_IMAGE)))
-X_label = parse_label(maybe_download(os.path.join(LOCAL_PATH, TRAIN_LABEL)))
+X_train = parse_image(maybe_download(LOCAL_PATH / TRAIN_IMAGE))
+X_label = parse_label(maybe_download(LOCAL_PATH / TRAIN_LABEL))
 
 mnist = tf.data.Dataset.from_tensor_slices((X_train, X_label))
 mnist = mnist.map(lambda x, y: (tf.image.resize_images(x, [64, 64]), y))
