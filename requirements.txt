@@ -17,6 +17,7 @@ cffi==1.11.5
 chardet==3.0.4
 click==6.7
 colorama==0.3.7
+cryptography==2.2.2
 cycler==0.10.0
 decorator==4.2.1
 docutils==0.14
@@ -60,7 +61,7 @@ notebook==5.4.1
 numpy==1.14.2
 pandas==0.23.3
 pandocfilters==1.4.2
-paramiko==2.4.1
+paramiko==2.4.2
 parso==0.1.1
 pbr==3.1.1
 pew==1.1.2
@@ -97,12 +98,15 @@ Send2Trash==1.5.0
 simplegeneric==0.8.1
 six==1.11.0
 stevedore==1.28.0
+tensorboard==1.9.0
 tensorflow==1.9.0
 tensorflow-serving-api==1.10.1
+tensorflow-tensorboard==0.4.0
 termcolor==1.1.0
 terminado==0.8.1
 testpath==0.3.1
 tornado==5.0.2
+tqdm==4.26.0
 traitlets==4.3.2
 urllib3==1.22
 virtualenv==16.0.0
@@ -113,4 +117,3 @@ webencodings==0.5.1
 Werkzeug==0.14.1
 widgetsnbextension==3.2.0
 wrapt==1.10.11
-tqdm==4.26.0
