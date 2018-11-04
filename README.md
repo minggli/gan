@@ -24,9 +24,9 @@ to train and export model to `./bin` (default) so that Tensorflow Model Server c
 `docker-compose up` to start containers for web app and tensorflow serving.  
 
 ### Endpoint
-`GET host:5000/generate` samples a generated image from approximated p(x).  
+`GET host:5000/generate/` samples a generated image from approximated $ \sum_{\forall c}{p(x|c)p(c)} $.  
 
-`POST host:5000/generate` samples a generated image from approximated p(x|c) where c ∈ {0, 1, 2, ..., 8, 9} as raw data in request.  
+`GET host:5000/generate/<int:c>` samples a generated image from approximated p(x|c) where c ∈ {0, 1, 2, ..., 8, 9}
 
 ## Literature Review
 Generative Adversarial Networks (GAN) is a framework of adversarial learning between Discriminator D(x) and Generator G(z) that aims to achieve Nash equilibrium between D and G where G(z) should successfully approximate P(x) and therefore generate realistic samples.
