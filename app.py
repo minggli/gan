@@ -7,7 +7,7 @@ flask app serving external client calls.
 from random import randint
 
 from flask import Flask
-from flask import request, abort, render_template, redirect
+from flask import request, render_template, redirect
 
 from helper import _validate_integer
 from serving import grpc_generate, grpc_predict
@@ -19,20 +19,14 @@ app.config.update(APP_CONFIG)
 
 @app.route('/')
 def index():
-    return redirect('/generate')
+    return redirect('/generate/')
 
 
-@app.route('/generate', methods=['GET', 'POST'])
-def generate():
-    if request.method == 'GET':
+@app.route('/generate/', defaults={'digit': None}, methods=['GET'])
+@app.route('/generate/<int:digit>', methods=['GET'])
+def generate(digit):
+    if _validate_integer(digit) is None:
         digit = randint(0, 9)
-    elif request.method == 'POST':
-        raw = request.get_data()
-        digit = _validate_integer(raw)
-
-        if digit is None:
-            abort(400)
-
     return grpc_generate(digit)
 
 
