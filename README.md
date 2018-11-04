@@ -24,7 +24,7 @@ to train and export model to `./bin` (default) so that Tensorflow Model Server c
 `docker-compose up` to start containers for web app and tensorflow serving.  
 
 ### Endpoint
-`GET host:5000/generate/` samples a generated image from approximated $\sum_{\forall c}{p(x|c)p(c)}$.  
+`GET host:5000/generate/` samples a generated image from approximated ∫p(x|c)p(c)dc.  
 
 `GET host:5000/generate/<int:c>` samples a generated image from approximated p(x|c) where c ∈ {0, 1, 2, ..., 8, 9}
 
