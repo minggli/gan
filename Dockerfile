@@ -1,2 +1,3 @@
 FROM python:3.6-onbuild
-CMD ["python", "app.py"]
+
+CMD ["uwsgi", "--yaml", "app.yaml"]
