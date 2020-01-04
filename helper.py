@@ -20,7 +20,7 @@ from gan.graph import condition_matrice, gaussian_noise
 def _try_cast_integer(input):
     try:
         return int(input)
-    except (ValueError, TypeError) as e:
+    except (ValueError, TypeError):
         return input
 
 
