@@ -3,7 +3,8 @@ services:
   web:
     build: .
     ports:
-      - 5000:5000
+      - 8000:8000
+      - 9191:9191
   serving:
     image: 'tensorflow/serving'
     ports:
