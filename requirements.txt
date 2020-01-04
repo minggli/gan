@@ -1,4 +1,5 @@
 absl-py==0.1.13
+aniso8601==8.0.0
 apipkg==1.5
 appnope==0.1.0
 asn1crypto==0.24.0
@@ -27,6 +28,7 @@ execnet==1.5.0
 fabric==2.2.0
 flake8==3.5.0
 Flask==1.0.2
+flask-restplus==0.13.0
 Flask-Uploads==0.2.1
 gast==0.2.0
 grpcio==1.14.2
@@ -109,6 +111,7 @@ tornado==5.0.2
 tqdm==4.26.0
 traitlets==4.3.2
 urllib3==1.22
+uWSGI==2.0.18
 virtualenv==16.0.0
 virtualenv-clone==0.3.0
 virtualenvwrapper==4.8.2
