@@ -19,7 +19,7 @@ ns = Namespace('generate', description='Generate images.')
 
 
 @ns.route('/', defaults={'digit': None})
-@ns.route('/<int:digit>', defaults={'digit': None})
+@ns.route('/<int:digit>')
 @ns.doc(params={'digit': '0-9 single integer'})
 class Generate(Resource):
     def get(self, digit):
