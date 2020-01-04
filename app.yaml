@@ -4,3 +4,5 @@ uwsgi:
   processes: 1
   threads: 4
   stats: 127.0.0.1:9191
+  # known bug with wsgi file optimization
+  wsgi-disable-file-wrapper: true
