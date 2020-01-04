@@ -15,11 +15,12 @@ from config import APP_CONFIG
 
 application = Flask(__name__)
 application.config.update(APP_CONFIG)
-
 ns = Namespace('generate', description='Generate images.')
 
 
+@ns.route('/', defaults={'digit': None})
 @ns.route('/<int:digit>', defaults={'digit': None})
+@ns.doc(params={'digit': '0-9 single integer'})
 class Generate(Resource):
     def get(self, digit):
         if _validate_integer(digit) is None:
@@ -44,9 +45,8 @@ api = Api(
     title='Wasserstein GAN',
     version='1.0',
     description='Generate images using GANs')
-api.add_namespace(ns, path="/generate")
+api.add_namespace(ns)
 api.init_app(application)
 
-
 if __name__ == '__main__':
-    application.run(host='0.0.0.0', debug=True)
+    application.run(host='0.0.0.0', port='8000', debug=True)
