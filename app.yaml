@@ -1,8 +1,3 @@
-uwsgi:
-  http-socket: :8000
-  wsgi-file: app.py
-  processes: 1
-  threads: 4
-  stats: 127.0.0.1:9191
-  # known bug with wsgi file optimization
-  wsgi-disable-file-wrapper: true
+# Google App Engine
+runtime: python36
+entrypoint: uwsgi --yaml uwsgi.yaml
