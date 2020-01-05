@@ -1,3 +1,7 @@
 # Google App Engine
-runtime: python36
+service: web
+runtime: python37
 entrypoint: uwsgi --yaml uwsgi.yaml
+instance_class: F1
+automatic_scaling:
+  max_instances: 3
