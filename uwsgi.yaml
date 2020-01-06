@@ -1,5 +1,5 @@
 uwsgi:
-  http-socket: :8000
+  http-socket: :5000
   wsgi-file: app.py
   processes: 1
   threads: 4

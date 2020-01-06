@@ -3,10 +3,11 @@ services:
   web:
     image: 'eu.gcr.io/gan-demo-264214/web_gan'
     ports:
-      - 8000:8000
+      - 80:5000
       - 9191:9191
+    labels:
+      kompose.service.type: LoadBalancer
   serving:
     image: 'eu.gcr.io/gan-demo-264214/serving_gan'
     ports:
       - 8500:8500
-
