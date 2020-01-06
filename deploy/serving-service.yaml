@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/1/./kompose-linux-amd64 convert
+    kompose.version: 1.18.0 (06a2e56)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: serving
+  name: serving
+spec:
+  ports:
+  - name: "8500"
+    port: 8500
+    targetPort: 8500
+  selector:
+    io.kompose.service: serving
+status:
+  loadBalancer: {}
