@@ -16,4 +16,6 @@ dist
 .coverage
 html/*
 __pycache__
-.pytest_cache/
+.pytest_cache
+
+deploy/
