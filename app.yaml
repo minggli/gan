@@ -1,3 +1,0 @@
-# Google App Engine
-runtime: python36
-entrypoint: uwsgi --yaml uwsgi.yaml
